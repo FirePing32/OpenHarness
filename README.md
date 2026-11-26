@@ -1,5 +1,7 @@
 # OpenHarness
 
+[![CI](https://github.com/FirePing32/OpenHarness/actions/workflows/ci.yml/badge.svg)](https://github.com/FirePing32/OpenHarness/actions/workflows/ci.yml)
+
 Build an AI agent by customizing **every component of its harness**: model, prompt, tools, skills, memory, sessions, context management, loop, sub-agents, permissions, guardrails, hooks and observability. Test it live, then download it as a **single binary that serves an OpenAI-compatible API**.
 
 - Research behind the design: [docs/RESEARCH.md](docs/RESEARCH.md)
@@ -76,5 +78,12 @@ On macOS, a downloaded binary may need `xattr -d com.apple.quarantine ./my-agent
 | `web/` | Builder UI: plain HTML/CSS/JS, embedded into the server binary |
 
 ```bash
-go test ./...
+go test ./...              # unit tests
+python3 qa/ci_smoke.py     # end-to-end: real agent binary + QA fixtures (36 checks)
 ```
+
+CI (`.github/workflows/ci.yml`) runs on every push and pull request:
+- **Lint & unit tests:** gofmt, vet, race-enabled tests, UI/QA syntax, and a check that the QA set is regenerated.
+- **Cross-compile:** both binaries for all six targets.
+- **End-to-end:** `qa/ci_smoke.py`.
+- **Docker:** builds the production image and runs it in public mode. Then, through the live API, it exports a distroless agent bundle and a Debian one, builds both images, and checks they come up healthy and serve `/v1/models`.

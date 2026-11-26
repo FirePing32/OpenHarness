@@ -87,4 +87,6 @@ Import `test-cases.csv` into Google Sheets or your test tool. Fill **Status** (P
 
 ## Automated coverage
 
+`python3 qa/ci_smoke.py` runs 36 of these cases end to end: a real agent binary against the fixtures, with each result asserted. It takes about 10 s, and CI runs it on every push.
+
 `go test ./...` already covers part of this set: the tool loop, streaming, client tools, permissions, guardrails and PII, auth, sessions (including the repeated-message regression), compaction, planning, hook injection, Anthropic conversion, the calculator, workspace escape, the public-mode sandbox, rate limiting, the SSRF guard, Dockerfile generation and the Docker bundle. The manual set focuses on UI, platform, deployment and end-to-end behaviour, and repeats the critical automated paths at the HTTP level.
