@@ -819,9 +819,13 @@ function renderStart() {
         h('h1', { class: 'hero-title' }, 'Every component of the harness is ', h('em', { text: 'yours' }), '.'),
         h('p', { class: 'hero-sub', text: 'Pick the model, write the prompt, wire up tools, skills, memory, the loop, sub-agents, permissions, guardrails and hooks. Test it here, then download a single binary that serves an OpenAI-compatible API.' }),
         h('div', { class: 'hero-flow mono', 'aria-hidden': 'true' },
-          h('span', { text: 'spec.json' }), h('span', { class: 'arrow', text: '→' }), h('span', { text: 'go build' }), h('span', { class: 'arrow', text: '→' }), h('span', { text: './agent' }), h('span', { class: 'arrow', text: '→' }), h('span', { text: 'POST /v1/chat/completions' }))),
+          h('span', { text: 'spec.json' }), h('span', { class: 'arrow', text: '→' }), h('span', { text: 'go build' }), h('span', { class: 'arrow', text: '→' }), h('span', { text: './agent' }), h('span', { class: 'arrow', text: '→' }), h('span', { text: 'POST /v1/chat/completions' })),
+        h('div', { class: 'hero-cta' },
+          h('button', { type: 'button', class: 'btn btn-primary btn-lg btn-arrow', onclick: () => document.getElementById('presets').scrollIntoView({ behavior: 'smooth', block: 'start' }) }, 'Start building'))),
       h('ol', { class: 'anatomy', 'aria-label': 'Harness components' }, comps.map((c, i) =>
         h('li', { class: 'anatomy-item' }, h('span', { class: 'mono anatomy-num', text: String(i + 1).padStart(2, '0') }), h('span', { text: c.title }))))),
+
+    h('div', { class: 'hero-mark', 'aria-hidden': 'true', text: 'OpenHarness' }),
 
     saved && saved.started && saved.spec && h('div', { class: 'resume' },
       h('div', null,
@@ -829,7 +833,7 @@ function renderStart() {
         h('p', { class: 'muted small', text: 'Saved in this browser. Starting something new replaces it.' })),
       h('button', { type: 'button', class: 'btn btn-primary', text: 'Resume', onclick: () => resumeDraft(saved) })),
 
-    h('section', { class: 'presets' },
+    h('section', { class: 'presets', id: 'presets' },
       h('h2', { class: 'section-title', text: 'Start from a preset' }),
       h('p', { class: 'muted', text: online ? 'Each preset is a complete spec. You will still walk through every component and can change anything.' : 'The builder backend is offline, so presets are unavailable. You can still start from defaults or import a spec.' }),
       h('div', { class: 'preset-grid' },
