@@ -24,31 +24,38 @@ import (
 	"openharness/spec"
 )
 
-// Target is a GOOS/GOARCH pair offered in the UI.
+// Target is a GOOS/GOARCH pair offered in the UI, grouped by OS family.
 type Target struct {
-	OS    string `json:"os"`
-	Arch  string `json:"arch"`
-	Label string `json:"label"`
+	OS        string `json:"os"`
+	Arch      string `json:"arch"`
+	Family    string `json:"family"`    // macos | linux | windows
+	ArchLabel string `json:"archLabel"` // short CPU description
+	Label     string `json:"label"`
 }
 
 var Targets = []Target{
-	{"darwin", "arm64", "macOS (Apple Silicon)"},
-	{"darwin", "amd64", "macOS (Intel)"},
-	{"linux", "amd64", "Linux x86-64"},
-	{"linux", "arm64", "Linux ARM64"},
-	{"windows", "amd64", "Windows x86-64"},
-	{"windows", "arm64", "Windows ARM64"},
+	{"darwin", "arm64", "macos", "Apple Silicon (M1 and later)", "macOS (Apple Silicon)"},
+	{"darwin", "amd64", "macos", "Intel", "macOS (Intel)"},
+	{"linux", "amd64", "linux", "x86-64 (most PCs and servers)", "Ubuntu / Linux (x86-64)"},
+	{"linux", "arm64", "linux", "ARM64 (Graviton, Ampere, Raspberry Pi)", "Ubuntu / Linux (ARM64)"},
+	{"windows", "amd64", "windows", "x64 (most PCs)", "Windows (x64)"},
+	{"windows", "arm64", "windows", "ARM64 (Snapdragon)", "Windows (ARM64)"},
 }
 
 func HostTarget() Target { return Target{OS: runtime.GOOS, Arch: runtime.GOARCH} }
 
-func validTarget(goos, goarch string) bool {
+func findTarget(goos, goarch string) (Target, bool) {
 	for _, t := range Targets {
 		if t.OS == goos && t.Arch == goarch {
-			return true
+			return t, true
 		}
 	}
-	return false
+	return Target{}, false
+}
+
+func validTarget(goos, goarch string) bool {
+	_, ok := findTarget(goos, goarch)
+	return ok
 }
 
 // GoToolchain locates the go command.

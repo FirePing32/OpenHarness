@@ -48,6 +48,7 @@ func main() {
 	port := flag.Int("port", 0, "listen port (overrides spec; env PORT also works)")
 	printSpec := flag.Bool("print-spec", false, "print the effective spec as JSON and exit")
 	check := flag.Bool("check", false, "validate the spec and exit")
+	healthcheck := flag.Bool("healthcheck", false, "probe a running instance on this port (for container health checks) and exit")
 	showVersion := flag.Bool("version", false, "print version and exit")
 	flag.Parse()
 
@@ -80,6 +81,15 @@ func main() {
 		s.Server.Port = *port
 	} else if p, err := strconv.Atoi(os.Getenv("PORT")); err == nil && p > 0 {
 		s.Server.Port = p
+	}
+	if *healthcheck {
+		c := &http.Client{Timeout: 3 * time.Second}
+		resp, err := c.Get("http://" + net.JoinHostPort("127.0.0.1", strconv.Itoa(s.Server.Port)) + "/healthz")
+		if err != nil || resp.StatusCode != http.StatusOK {
+			fmt.Fprintln(os.Stderr, "unhealthy:", err)
+			os.Exit(1)
+		}
+		return
 	}
 	if *printSpec {
 		enc := json.NewEncoder(os.Stdout)

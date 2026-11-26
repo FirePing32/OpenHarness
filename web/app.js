@@ -324,7 +324,7 @@ function save() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       spec: state.spec, started: state.started, step: state.step,
-      visited: [...state.visited], target: state.target, showSpec: state.showSpec,
+      visited: [...state.visited], target: state.target, docker: !!state.docker, showSpec: state.showSpec,
     }));
   } catch { /* storage unavailable */ }
 }
@@ -865,6 +865,7 @@ function resumeDraft(saved) {
   state.visited = new Set(saved.visited || [state.step]);
   state.showSpec = !!saved.showSpec;
   if (saved.target) state.target = saved.target;
+  state.docker = !!saved.docker;
   save();
   render();
   validateNow();
@@ -1952,11 +1953,22 @@ function envVarsUsed() {
   return out;
 }
 
+const OS_FAMILIES = [
+  { id: 'macos', title: 'macOS', desc: 'MacBook, iMac, Mac mini. Apple Silicon or Intel.' },
+  { id: 'linux', title: 'Ubuntu / Linux', desc: 'Ubuntu, Debian, Fedora and other distributions, desktops and servers.' },
+  { id: 'windows', title: 'Windows', desc: 'Windows 10 and 11, run from PowerShell.' },
+];
+
+function familyOf(t) {
+  return t.family || (t.os === 'darwin' ? 'macos' : t.os);
+}
+
 function targetList() { return catalog.targets && catalog.targets.length ? catalog.targets : FALLBACK_CATALOG.targets; }
 
 function hostTargetKey() {
   const ht = catalog.hostTarget;
-  if (ht && ht.os) return `${ht.os}/${ht.arch}`;
+  // Locally the builder's host is the user's machine; publicly it's the server, so guess from the browser.
+  if (!catalog.public && ht && ht.os) return `${ht.os}/${ht.arch}`;
   const ua = navigator.userAgent || '';
   if (/Mac/.test(ua)) return 'darwin/arm64';
   if (/Win/.test(ua)) return 'windows/amd64';
@@ -1991,14 +2003,43 @@ function renderBuild() {
   });
   if (online) validateNow();
 
-  const targetSel = h('select', { id: 'target-select' }, targetList().map((x) => h('option', { value: `${x.os}/${x.arch}`, selected: x === t, text: x.label + (catalog.hostTarget && x.os === catalog.hostTarget.os && x.arch === catalog.hostTarget.arch ? '  (this machine)' : '') })));
-  targetSel.addEventListener('change', () => { state.target = targetSel.value; save(); renderStep({ keepScroll: true }); });
+  const isHost = (x) => !catalog.public && catalog.hostTarget && x.os === catalog.hostTarget.os && x.arch === catalog.hostTarget.arch;
+  const setTarget = (key) => { state.target = key; buildState.result = null; save(); renderStep({ keepScroll: true }); };
+  const families = OS_FAMILIES.filter((f) => targetList().some((x) => familyOf(x) === f.id));
+  const osPicker = h('fieldset', { class: 'field wide radio-cards' },
+    h('legend', { class: 'label', text: 'Operating system' }),
+    h('div', { class: 'rcards' }, families.map((f) => {
+      const sel = familyOf(t) === f.id;
+      return h('label', { class: 'rcard' + (sel ? ' selected' : '') },
+        h('input', {
+          type: 'radio', name: 'target-os', value: f.id, checked: sel,
+          onchange: () => {
+            const opts = targetList().filter((x) => familyOf(x) === f.id);
+            const pick = opts.find(isHost) || opts[0];
+            setTarget(`${pick.os}/${pick.arch}`);
+          },
+        }),
+        h('span', { class: 'rcard-head' }, h('span', { class: 'rcard-title', text: f.title })),
+        h('span', { class: 'rcard-desc', text: f.desc }));
+    })));
+  const archSel = h('select', { id: 'target-select' }, targetList().filter((x) => familyOf(x) === familyOf(t)).map((x) =>
+    h('option', { value: `${x.os}/${x.arch}`, selected: x === t, text: (x.archLabel || x.label) + (isHost(x) ? '  (this machine)' : '') })));
+  archSel.addEventListener('change', () => setTarget(archSel.value));
+
+  const dockerId = 'docker-toggle';
+  const dockerToggle = h('div', { class: 'field wide toggle-field' },
+    h('label', { class: 'switch', for: dockerId },
+      h('input', { id: dockerId, type: 'checkbox', role: 'switch', checked: !!state.docker, 'aria-describedby': dockerId + '-help',
+        onchange: (e) => { state.docker = e.target.checked; buildState.result = null; save(); renderStep({ keepScroll: true }); } }),
+      h('span', { class: 'switch-track', 'aria-hidden': 'true' }),
+      h('span', { class: 'switch-label', text: 'Include a Dockerfile' })),
+    h('p', { class: 'help', id: dockerId + '-help', text: 'Downloads a .zip with the binary, a Dockerfile and docker-compose.yml. Containers run Linux on every host, so the zip also carries Linux builds for x86-64 and ARM64 and Docker picks the right one.' }));
 
   const elapsed = live(() => buildState.busy ? `${Math.floor((Date.now() - buildState.startedAt) / 1000)}s elapsed` : '', 'span', 'muted small mono');
 
   const buildBtn = h('button', {
     type: 'button', id: 'build-btn', class: 'btn btn-primary btn-lg', disabled: buildState.busy || !online || (lastErrors && lastErrors.length > 0),
-    text: buildState.busy ? 'Building…' : `Build binary for ${t.label}`,
+    text: buildState.busy ? 'Building…' : state.docker ? `Build ${t.label} + Docker` : `Build for ${t.label}`,
     onclick: runBuild,
   });
 
@@ -2008,13 +2049,17 @@ function renderBuild() {
     h('section', { class: 'card build-card' },
       h('h2', { class: 'card-title', text: 'Compile' }),
       h('div', { class: 'grid' },
-        h('div', { class: 'field' }, h('label', { class: 'label', for: 'target-select', text: 'Target platform' }), targetSel,
+        osPicker,
+        h('div', { class: 'field' }, h('label', { class: 'label', for: 'target-select', text: 'Processor' }), archSel,
           h('p', { class: 'help', text: 'Cross-compiled with Go. No runtime dependencies on the target.' })),
         h('div', { class: 'field' }, h('span', { class: 'label', text: 'What gets built' }),
-          h('p', { class: 'help' }, 'A single executable with this spec embedded. It serves ', h('code', { text: `/v1/chat/completions` }), ' as ', h('code', { text: state.spec.server.modelId }), '.'))),
+          state.docker
+            ? h('p', { class: 'help' }, 'A zip: the ', h('code', { text: t.label }), ' binary, Linux builds for the container, a Dockerfile, docker-compose.yml and a README.')
+            : h('p', { class: 'help' }, 'A single executable with this spec embedded. It serves ', h('code', { text: `/v1/chat/completions` }), ' as ', h('code', { text: state.spec.server.modelId }), '.')),
+        dockerToggle),
       h('div', { class: 'build-actions' }, buildBtn, elapsed),
       buildState.busy && h('div', { class: 'progress', role: 'progressbar', 'aria-label': 'Building binary', 'aria-busy': 'true' }, h('span')),
-      buildState.busy && h('p', { class: 'muted small', text: 'Compiling the runtime with your spec. This usually takes 5–30 seconds.' }),
+      buildState.busy && h('p', { class: 'muted small', text: state.docker ? 'Compiling three binaries (yours plus two Linux builds for the container). This usually takes 5–40 seconds.' : 'Compiling the runtime with your spec. This usually takes 5–30 seconds.' }),
       buildState.error && callout('danger', h('strong', { text: 'Build failed' }), buildState.errors.length ? errorList(buildState.errors) : h('pre', { class: 'mono small pre-wrap', text: buildState.error })),
       buildState.result && h('div', { class: 'build-result' },
         h('span', { class: 'ok-mark', 'aria-hidden': 'true', text: '✓' }),
@@ -2042,7 +2087,7 @@ async function runBuild() {
   try {
     const res = await fetch('/api/build', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ spec: state.spec, os: t.os, arch: t.arch }),
+      body: JSON.stringify({ spec: state.spec, os: t.os, arch: t.arch, docker: !!state.docker }),
     });
     if (!res.ok) {
       const j = await readJSON(res);
@@ -2052,14 +2097,37 @@ async function runBuild() {
     const blob = await res.blob();
     const filename = filenameFrom(res.headers.get('Content-Disposition')) || defaultBinaryName(t);
     downloadBlob(blob, filename);
-    buildState.result = { filename, size: blob.size, label: t.label, os: t.os };
-    toast('Binary downloaded');
+    buildState.result = { filename, size: blob.size, label: t.label, os: t.os, docker: !!state.docker };
+    toast(state.docker ? 'Bundle downloaded' : 'Binary downloaded');
   } catch (e) {
     buildState.error = e.message || String(e);
   }
   buildState.busy = false;
   clearInterval(buildState.timer);
   renderStep({ keepScroll: true });
+}
+
+function dockerHowTo(t, envs) {
+  const s = state.spec;
+  const zip = `${s.name}-${t.os}-${t.arch}-docker.zip`;
+  const img = s.name.toLowerCase();
+  const port = s.server.port;
+  const win = t.os === 'windows';
+  const unzip = win
+    ? [`Expand-Archive .\\${zip} -DestinationPath .`, `cd .\\${s.name}`]
+    : [`unzip ${zip}`, `cd ${s.name}`];
+  const setEnv = envs.map((e) => (win ? `$env:${e.name} = "<${e.why}>"` : `export ${e.name}="<${e.why}>"`));
+  const compose = [...unzip, ...setEnv, 'docker compose up --build'].join('\n');
+  const plain = [
+    `docker build -t ${img} .`,
+    `docker run --rm -p ${port}:${port}${envs.map((e) => ' -e ' + e.name).join('')} -v ${img}-data:/data ${img}`,
+  ].join('\n');
+  return h('div', { class: 'docker-howto' },
+    h('h3', { class: 'subhead', text: '4. Or run it in Docker' }),
+    h('p', { class: 'help' }, 'Works with Docker Desktop on macOS and Windows and Docker Engine on Ubuntu. Secrets are passed in at run time and never baked into the image. Memory and sessions persist in the ', h('code', { text: `${img}-data` }), ' volume.'),
+    codeBlock(compose, win ? 'powershell' : 'shell'),
+    h('p', { class: 'help', text: 'Without Compose:' }),
+    codeBlock(plain, 'shell'));
 }
 
 function filenameFrom(cd) {
@@ -2070,13 +2138,14 @@ function filenameFrom(cd) {
   return plain ? plain[1].trim() : '';
 }
 
+// Matches builder.Filename on the server.
 function defaultBinaryName(t) {
-  return `${state.spec.name || 'agent'}${t.os === 'windows' ? '.exe' : ''}`;
+  return `${state.spec.name || 'agent'}-${t.os}-${t.arch}${t.os === 'windows' ? '.exe' : ''}`;
 }
 
 function howToRun(t) {
   const s = state.spec;
-  const file = buildState.result && buildState.result.os === t.os ? buildState.result.filename : defaultBinaryName(t);
+  const file = buildState.result && buildState.result.os === t.os && !buildState.result.docker ? buildState.result.filename : defaultBinaryName(t);
   const win = t.os === 'windows';
   const host = s.server.host === '0.0.0.0' || !s.server.host ? '127.0.0.1' : s.server.host;
   const base = `http://${host}:${s.server.port}/v1`;
@@ -2150,6 +2219,7 @@ function howToRun(t) {
     codeBlock(curl, win ? 'powershell' : 'shell'),
     h('h3', { class: 'subhead', text: '3. Or with the OpenAI Python SDK' }),
     codeBlock(py, 'python'),
+    state.docker && dockerHowTo(t, envs),
     h('p', { class: 'help' }, 'Any OpenAI-compatible client works: set the base URL to ', h('code', { text: base }), ' and the model to ', h('code', { text: s.server.modelId }), '.'));
 }
 
@@ -2256,7 +2326,7 @@ function wireTopbar() {
     state.started = false;
     // Keep the draft marked as started so the start screen offers "Resume".
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ spec: state.spec, started: true, step: state.step, visited: [...state.visited], target: state.target, showSpec: state.showSpec }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ spec: state.spec, started: true, step: state.step, visited: [...state.visited], target: state.target, docker: !!state.docker, showSpec: state.showSpec }));
     } catch { /* ignore */ }
     render();
   });

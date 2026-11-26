@@ -187,6 +187,7 @@ type specBody struct {
 	OS     string          `json:"os"`
 	Arch   string          `json:"arch"`
 	APIKey string          `json:"apiKey"` // public previews only; held in memory
+	Docker bool            `json:"docker"` // export a zip with Linux binaries and a Dockerfile
 }
 
 func readSpec(r *http.Request) (*spec.Spec, *specBody, error) {
@@ -376,7 +377,11 @@ func (a *app) build(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Minute)
 	defer cancel()
 	start := time.Now()
-	path, err := builder.Build(ctx, s, goos, goarch)
+	build, name, ctype := builder.Build, builder.Filename(s, goos, goarch), "application/octet-stream"
+	if b.Docker {
+		build, name, ctype = builder.Bundle, builder.BundleFilename(s, goos, goarch), "application/zip"
+	}
+	path, err := build(ctx, s, goos, goarch)
 	if err != nil {
 		code := 500
 		if strings.HasPrefix(err.Error(), "spec is invalid") || strings.HasPrefix(err.Error(), "unsupported target") {
@@ -393,9 +398,8 @@ func (a *app) build(w http.ResponseWriter, r *http.Request) {
 	}
 	defer f.Close()
 	st, _ := f.Stat()
-	name := builder.Filename(s, goos, goarch)
-	a.log.Info("binary built", "agent", s.Name, "target", goos+"/"+goarch, "bytes", st.Size(), "took", time.Since(start).Round(time.Millisecond))
-	w.Header().Set("Content-Type", "application/octet-stream")
+	a.log.Info("binary built", "agent", s.Name, "target", goos+"/"+goarch, "docker", b.Docker, "bytes", st.Size(), "took", time.Since(start).Round(time.Millisecond))
+	w.Header().Set("Content-Type", ctype)
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, name))
 	w.Header().Set("Content-Length", fmt.Sprint(st.Size()))
 	w.Header().Set("X-Build-Ms", fmt.Sprint(time.Since(start).Milliseconds()))
