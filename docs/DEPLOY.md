@@ -12,7 +12,7 @@ Internet ─▶ Coolify proxy (Traefik, HTTPS) ─▶ openharness container :707
 
 ## Server size
 
-- **Minimum (tested config):** 2 vCPU / 4 GB.
+- **Minimum:** 2 vCPU / 4 GB.
   - `docker-compose.yml` is tuned for this: the builder gets 1.5 CPUs and 2.5 GB, leaving room for Coolify's own services.
   - Builds run one at a time (`OPENHARNESS_BUILD_CONCURRENCY=1`). A warm build takes 1–3s.
   - Add **2–4 GB of swap**. The one-off image build compiles six targets and can spike past free RAM on a 4 GB host:
