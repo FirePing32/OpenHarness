@@ -2215,7 +2215,42 @@ async function loadCatalog() {
   }
 }
 
+/* ------------------------------------------------------------------------ */
+/* Theme toggle                                                              */
+/* ------------------------------------------------------------------------ */
+
+const THEME_KEY = 'openharness.theme';
+const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+const ICON_SUN = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square"><rect x="5" y="5" width="6" height="6"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6L13 13M3 13l1.4-1.4M11.6 4.4L13 3"/></svg>';
+const ICON_MOON = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="miter"><path d="M13.5 9.8A6 6 0 0 1 6.2 2.5a6 6 0 1 0 7.3 7.3z"/></svg>';
+
+function effectiveTheme() {
+  return document.documentElement.dataset.theme || (darkQuery.matches ? 'dark' : 'light');
+}
+
+function updateThemeButton() {
+  const btn = document.getElementById('btn-theme');
+  if (!btn) return;
+  const next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+  btn.innerHTML = next === 'light' ? ICON_SUN : ICON_MOON; // static, trusted markup
+  btn.setAttribute('aria-label', `Switch to ${next} theme`);
+  btn.title = `Switch to ${next} theme`;
+}
+
+function wireTheme() {
+  document.getElementById('btn-theme').addEventListener('click', () => {
+    const next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem(THEME_KEY, next); } catch { /* private mode: choice lasts for this page only */ }
+    updateThemeButton();
+  });
+  // Without an explicit choice the page follows the system; keep the icon in sync.
+  darkQuery.addEventListener('change', updateThemeButton);
+  updateThemeButton();
+}
+
 function wireTopbar() {
+  wireTheme();
   document.getElementById('brand').addEventListener('click', () => {
     if (!state.started) return;
     state.started = false;
