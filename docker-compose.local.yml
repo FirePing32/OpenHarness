@@ -1,0 +1,9 @@
+# Local override: publish the builder on http://localhost:7070.
+# With no proxy in front, client IPs come from the connection, not headers.
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+services:
+  openharness:
+    ports:
+      - "127.0.0.1:7070:7070"
+    environment:
+      OPENHARNESS_TRUST_PROXY: "0"

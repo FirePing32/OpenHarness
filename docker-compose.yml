@@ -1,12 +1,16 @@
-# Works with `docker compose up` locally and with Coolify's Docker Compose build pack.
+# Production stack (Coolify's Docker Compose build pack, or any reverse proxy).
+# The port is only exposed to the proxy's network, never published on the
+# host, so all traffic arrives through HTTPS and X-Forwarded-For can be trusted.
+#
+# Running locally? Publish the port with the local override:
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
 services:
   openharness:
     build: .
-    ports:
-      - "7070:7070"
+    expose:
+      - "7070"
     environment:
       OPENHARNESS_PUBLIC: "1"
-      # Set to 0 if nothing sits in front of the container that sets X-Forwarded-For.
       OPENHARNESS_TRUST_PROXY: "1"
     volumes:
       - openharness-data:/data

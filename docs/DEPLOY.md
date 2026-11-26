@@ -25,7 +25,7 @@ Internet ─▶ Coolify proxy (Traefik, HTTPS) ─▶ openharness container :707
    ```
 2. Add a DNS **A record** for your domain (e.g. `harness.example.com`) pointing at the VPS.
 3. In Coolify, create a **new resource from your Git repository**. Then set:
-   - **Build pack:** `Dockerfile`. Not Nixpacks: the toolchain must stay in the image. Alternatively use `Docker Compose` with `docker-compose.yml`.
+   - **Build pack:** `Dockerfile` or `Docker Compose` (`docker-compose.yml`). Not Nixpacks: the toolchain must stay in the image. With Docker Compose, add the domain to the `openharness` service with port `7070`. The compose file only `expose`s the port, so the app is reachable solely through Coolify's HTTPS proxy.
    - **Port:** `7070`
    - **Domain:** `https://harness.example.com`
    - **Persistent storage:** a volume mounted at **`/data`**
@@ -64,7 +64,9 @@ Previews run a stranger's spec on your server, so public mode applies these rule
 ## Running the image elsewhere
 
 ```bash
-docker compose up --build        # http://localhost:7070
+docker compose -f docker-compose.yml -f docker-compose.local.yml up --build   # http://localhost:7070
 ```
+
+The base `docker-compose.yml` publishes no host port, which is right behind a proxy. `docker-compose.local.yml` adds `127.0.0.1:7070` for local use and stops trusting `X-Forwarded-For`.
 
 Any Docker host works the same way: Render, Railway, Fly.io or a plain VPS. Mount a volume at `/data` and route HTTPS to port 7070. Serverless platforms (Vercel, Cloudflare Workers) don't fit: there is no Go toolchain at runtime, executions are time-limited, and previews need a long-lived process.
