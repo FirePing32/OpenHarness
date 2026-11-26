@@ -4,7 +4,8 @@
 FROM golang:1.26-bookworm AS build
 WORKDIR /src
 COPY . .
-RUN go test ./... \
+# -short skips the test that compiles three full binaries (slow, memory-hungry).
+RUN go test -short ./... \
  && CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o /out/openharness ./cmd/openharness
 
 # ---- runtime image ----------------------------------------------------------

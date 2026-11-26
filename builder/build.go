@@ -17,6 +17,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -75,8 +76,17 @@ var (
 	srcOnce sync.Once
 	srcDir  string
 	srcErr  error
-	sem     = make(chan struct{}, 2)
+	sem     = make(chan struct{}, buildConcurrency())
 )
+
+// buildConcurrency caps parallel go builds (env OPENHARNESS_BUILD_CONCURRENCY,
+// default 2). Each build is CPU-bound and uses a few hundred MB of RAM.
+func buildConcurrency() int {
+	if n, err := strconv.Atoi(os.Getenv("OPENHARNESS_BUILD_CONCURRENCY")); err == nil && n > 0 {
+		return n
+	}
+	return 2
+}
 
 // sourceDir extracts the embedded runtime source once into a stable cache
 // directory keyed by content hash, so Go's build cache stays warm.

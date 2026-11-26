@@ -12,10 +12,18 @@ Internet ─▶ Coolify proxy (Traefik, HTTPS) ─▶ openharness container :707
 
 ## Server size
 
-- **CPU:** builds are CPU-bound. Plan on 4 vCPU, since 2 builds run at a time and a warm build takes about 1s.
-- **RAM:** 8 GB.
-- **Disk:** about 1 GB for the build cache (≈600 MB once all six targets are warm), plus the image.
-- Hetzner CPX31 or a DigitalOcean 4 vCPU / 8 GB droplet both fit.
+- **Minimum (tested config):** 2 vCPU / 4 GB.
+  - `docker-compose.yml` is tuned for this: the builder gets 1.5 CPUs and 2.5 GB, leaving room for Coolify's own services.
+  - Builds run one at a time (`OPENHARNESS_BUILD_CONCURRENCY=1`). A warm build takes 1–3s.
+  - Add **2–4 GB of swap**. The one-off image build compiles six targets and can spike past free RAM on a 4 GB host:
+    ```bash
+    sudo fallocate -l 4G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
+    echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+    ```
+- **Comfortable:** 4 vCPU / 8 GB.
+  - Raise `cpus` to `3`, `memory` to `6g` and `OPENHARNESS_BUILD_CONCURRENCY` to `2`.
+  - **The CPU limit must never exceed the host's CPU count**, or Docker refuses to start the container.
+- **Disk:** about 1 GB for the build cache (≈600 MB once all six targets are warm), plus the image (~1.5 GB, since it includes the Go toolchain).
 
 ## Coolify setup
 
@@ -30,7 +38,7 @@ Internet ─▶ Coolify proxy (Traefik, HTTPS) ─▶ openharness container :707
    - **Domain:** `https://harness.example.com`
    - **Persistent storage:** a volume mounted at **`/data`**
    - **Health check path:** `/healthz`
-   - **Resource limits:** e.g. 3 CPUs / 6 GB, so builds can't starve Coolify itself
+   - **Resource limits:** with the Docker Compose build pack they come from `docker-compose.yml` (see Server size). With the Dockerfile build pack, set them in the Resource Limits tab
 4. **Deploy.** With the GitHub App connected, every push to the main branch redeploys.
 
 The image already sets everything needed, so no environment variables are required. You can override these:
@@ -40,6 +48,7 @@ The image already sets everything needed, so no environment variables are requir
 | `OPENHARNESS_PUBLIC` | `1` | Public mode (see below). Set `0` only for a private, trusted deployment. |
 | `OPENHARNESS_TRUST_PROXY` | `1` | Read the client IP from `X-Forwarded-For`. Correct behind Coolify's proxy. Set `0` if the container port is exposed directly. |
 | `OPENHARNESS_ADDR` | `0.0.0.0:7070` | Listen address (`PORT` also works). |
+| `OPENHARNESS_BUILD_CONCURRENCY` | `2` (`1` in compose) | Parallel binary builds. Each is CPU-bound and uses a few hundred MB of RAM. |
 
 **Do not put model API keys in Coolify's environment.** Public mode never reads server environment variables for visitors' agents anyway.
 

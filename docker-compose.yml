@@ -12,14 +12,18 @@ services:
     environment:
       OPENHARNESS_PUBLIC: "1"
       OPENHARNESS_TRUST_PROXY: "1"
+      # One compile at a time suits a 2-CPU server; raise on bigger machines.
+      OPENHARNESS_BUILD_CONCURRENCY: "1"
     volumes:
       - openharness-data:/data
     restart: unless-stopped
+    # Sized for a 2 vCPU / 4 GB server shared with Coolify (~1-1.5 GB).
+    # The CPU limit must not exceed the host's CPU count or the container won't start.
     deploy:
       resources:
         limits:
-          cpus: "3"
-          memory: 6g
+          cpus: "1.5"
+          memory: 2560m
 
 volumes:
   openharness-data:
