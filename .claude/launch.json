@@ -1,0 +1,28 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "openharness",
+      "runtimeExecutable": "go",
+      "runtimeArgs": [
+        "run",
+        "./cmd/openharness",
+        "--addr",
+        "127.0.0.1:7070"
+      ],
+      "port": 7070
+    },
+    {
+      "name": "openharness-public",
+      "runtimeExecutable": "go",
+      "runtimeArgs": [
+        "run",
+        "./cmd/openharness",
+        "--addr",
+        "127.0.0.1:7071",
+        "--public"
+      ],
+      "port": 7071
+    }
+  ]
+}

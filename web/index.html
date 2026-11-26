@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>OpenHarness Builder</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d6e63'/%3E%3Cpath d='M9 9h4v14H9zM19 9h4v14h-4zM13 14h6v4h-6z' fill='%23f7f4ee'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#app">Skip to content</a>
+  <header class="topbar">
+    <div class="topbar-left">
+      <button type="button" class="brand" id="brand" title="Back to start">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="7" />
+          <path d="M9 9h4v14H9zM19 9h4v14h-4zM13 14h6v4h-6z" />
+        </svg>
+        <span class="brand-name">OpenHarness</span>
+      </button>
+      <span class="topbar-sep" aria-hidden="true">/</span>
+      <span class="agent-name mono" id="agent-name"></span>
+      <span class="status-pill" id="status-pill" hidden></span>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-spec" aria-pressed="false">Spec JSON</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-import">Import</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button>
+      <button type="button" class="btn btn-ghost btn-sm btn-danger-text" id="btn-reset">Reset</button>
+      <input type="file" id="input-import" accept="application/json,.json" hidden>
+    </div>
+  </header>
+  <div id="app" tabindex="-1">
+    <noscript><p class="noscript">OpenHarness Builder needs JavaScript enabled.</p></noscript>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

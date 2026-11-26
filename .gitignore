@@ -1,0 +1,5 @@
+.DS_Store
+harness-data/
+workspace/
+/openharness
+*.test

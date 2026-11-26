@@ -1,0 +1,21 @@
+# Works with `docker compose up` locally and with Coolify's Docker Compose build pack.
+services:
+  openharness:
+    build: .
+    ports:
+      - "7070:7070"
+    environment:
+      OPENHARNESS_PUBLIC: "1"
+      # Set to 0 if nothing sits in front of the container that sets X-Forwarded-For.
+      OPENHARNESS_TRUST_PROXY: "1"
+    volumes:
+      - openharness-data:/data
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "3"
+          memory: 6g
+
+volumes:
+  openharness-data:
