@@ -1,0 +1,445 @@
+ID,Section,Title,Priority,Type,Env,Setup,Steps,Expected,Status,Tester,Date,Build/commit,Notes
+UI-01,"Builder shell, navigation and persistence",Builder loads with no console errors,P0,Smoke,L,Builder running: `go run ./cmd/openharness`.,"1. Open http://127.0.0.1:7070.
+2. Open the browser console.","Start screen renders (hero, 14-component grid, preset cards). Top bar shows ""builder connected"". No console errors.",,,,,
+UI-02,"Builder shell, navigation and persistence",Backend offline state,P1,Negative,L,Builder open in the browser.,"1. Stop the builder process.
+2. Reload the page.
+3. Restart the builder and reload.","While stopped: offline status, presets unavailable message, build/test disabled with a 'backend is not reachable' callout. After restart everything works again.",,,,,
+UI-03,"Builder shell, navigation and persistence",Sidebar navigation to every step,P0,Functional,L,Any preset selected.,"1. Click each of the 16 sidebar entries (14 components, Test, Build & download).","Each step renders its title, summary, 'Equivalent in DeepSeek Harness' chip and 'Why it matters' note (component steps). No stray text such as 'false', 'undefined' or '[object Object]'.",,,,,
+UI-04,"Builder shell, navigation and persistence",Back / Next buttons,P1,Functional,L,Any preset selected.,"1. On step 1 press Next repeatedly until Build & download.
+2. Press Back to step 1.","Next/Back move one step at a time; the first step has no Back, the last has no Next. Visited steps get a check mark in the sidebar.",,,,,
+UI-05,"Builder shell, navigation and persistence",Draft autosave and resume,P0,Functional,L,Any preset selected.,"1. Change the agent name to `resume-test` on Identity.
+2. Go to step 5.
+3. Reload the page.",The draft resumes on the same step with `resume-test` and the same visited marks.,,,,,
+UI-06,"Builder shell, navigation and persistence",Brand logo returns to start with Resume,P2,Functional,L,A draft in progress.,"1. Click the OpenHarness logo.
+2. Click Resume.",Start screen shows 'Continue your draft <name>'. Resume returns to the draft unchanged.,,,,,
+UI-07,"Builder shell, navigation and persistence",Reset discards the draft,P1,Functional,L,A draft in progress.,"1. Click Reset, cancel the confirm.
+2. Click Reset, accept.","Cancel: nothing changes. Accept: confirm text 'Discard this agent and start over?…', then the start screen with no Resume card.",,,,,
+UI-08,"Builder shell, navigation and persistence",Spec JSON live panel,P1,Functional,L,Desktop width ≥1200px.,"1. Click Spec JSON.
+2. Change model.temperature to 0.9 on the Model step.
+3. Close the panel (button or Escape on narrow screens).","Panel shows pretty-printed spec and updates immediately to `""temperature"": 0.9`. Toggle state is reflected on the button.",,,,,
+UI-09,"Builder shell, navigation and persistence",Theme toggle follows system then remembers choice,P1,Functional,L,Clear site data. OS in dark mode.,"1. Load the app.
+2. Click the theme button.
+3. Reload.
+4. Switch the OS to light mode.","Loads dark (follows OS). Click switches to light, icon becomes a moon, label 'Switch to dark theme'. After reload it stays light with no flash of dark. OS change no longer affects it.",,,,,
+UI-10,"Builder shell, navigation and persistence",Theme visual check (both themes),P2,UI,L,,"1. Visit start screen, a component step, Test and Build in light and dark.","Monochrome palette, square corners, bold corner brackets on cards, readable contrast, grid background, wordmark fades. Only errors use red.",,,,,
+UI-11,"Builder shell, navigation and persistence",Phone layout (375px),P1,UI,L,Browser devtools at 375×812.,"1. Visit start screen and several steps.
+2. Use the step dropdown that replaces the sidebar.",No horizontal scroll; top bar on one row (Spec JSON hidden); forms single-column; step dropdown navigates.,,,,,
+UI-12,"Builder shell, navigation and persistence",Tablet layout (768px),P2,UI,L,Viewport 768×1024.,"1. Visit start screen, Tools, Test, Build.",Layouts adapt without overlap or clipped controls.,,,,,
+UI-13,"Builder shell, navigation and persistence",Keyboard-only navigation,P1,Accessibility,L,,"1. Tab through the top bar, sidebar and a form step.
+2. Toggle a switch with Space, pick a radio card with arrows.
+3. Use the skip link.",Every control is reachable with a visible focus ring; switches and radio cards operate from the keyboard; skip link jumps to content.,,,,,
+UI-14,"Builder shell, navigation and persistence",Screen-reader labels,P2,Accessibility,L,VoiceOver/NVDA.,1. Navigate the Model step and the theme button.,Inputs announce their labels and help text; theme button announces 'Switch to light/dark theme'.,,,,,
+UI-15,"Builder shell, navigation and persistence",Field validation errors surface in sidebar,P0,Functional,L,,"1. Set agent name to `bad name!`.
+2. Wait for validation.","Identity shows a problem callout listing `name: use 1-64 letters, digits, '-' or '_'`; sidebar shows an error badge on Identity; 'Spec is valid.' disappears.",,,,,
+UI-16,"Builder shell, navigation and persistence",Error links jump to the right step,P1,Functional,L,"Spec with errors in model and loop (e.g. model.model empty, loop.maxSteps 0).","1. Open Build & download.
+2. Click each listed problem.","Each error navigates to the component that owns it (model.* → Model, loop.* → Agent loop).",,,,,
+UI-17,"Builder shell, navigation and persistence",Rapid typing keeps focus,P1,UI,L,,1. Type quickly into the system prompt and a number field.,Focus and caret position are kept across live re-renders; no characters lost.,,,,,
+UI-18,"Builder shell, navigation and persistence",Storage blocked / private window,P2,Negative,L,Private window or site data blocked.,1. Use the app end to end.,App works; drafts and theme just aren't remembered. No errors.,,,,,
+PRE-01,"Start screen, presets, import and export",Preset cards show correct metadata,P1,Functional,L,,1. Read each preset card's chips.,Minimal: single shot · 0 tools · stateless. Research: plan execute · 4 tools · stateless · 1 sub-agent. Coding: react · 5 tools · server sessions. Support: react · 2 tools · server sessions · 1 skill.,,,,,
+PRE-02,"Start screen, presets, import and export",Each preset loads a valid spec,P0,Functional,L,,"1. For each of the 4 presets: select it, open Build & download.",Pre-flight check: 'All checks passed. Ready to build.' for every preset.,,,,,
+PRE-03,"Start screen, presets, import and export",Start from defaults,P1,Functional,L,,1. Click 'Start from defaults'.,"Spec equals server defaults: DeepSeek model, ReAct, current_time + calculator, stateless sessions.",,,,,
+PRE-04,"Start screen, presets, import and export",Start building CTA scrolls to presets,P2,UI,L,,1. Click START BUILDING ↗.,Page scrolls smoothly to 'Start from a preset'.,,,,,
+PRE-05,"Start screen, presets, import and export",Export spec JSON,P0,Functional,L,Any draft named `exp-test`.,1. Click Export JSON (top bar) and 'Export spec JSON' on Build.,"Downloads `exp-test.harness.json`, pretty-printed, identical to the Spec JSON panel.",,,,,
+PRE-06,"Start screen, presets, import and export",Import round-trip,P0,Functional,L,File from PRE-05.,"1. Reset.
+2. Import the file.",Toast 'Imported exp-test'; every field matches the exported spec.,,,,,
+PRE-07,"Start screen, presets, import and export",Import a fixture spec,P1,Functional,L,,1. Import qa/fixtures/specs/qa-kitchen-sink.json.,"All components populated (2 HTTP tools, 2 MCP servers, 2 skills, 1 sub-agent, guardrails, hook). Spec is valid.",,,,,
+PRE-08,"Start screen, presets, import and export","Import wrapped spec {""spec"": …}",P2,Functional,L,"A JSON file of the form {""spec"": {...}}.",1. Import it.,The inner spec is imported.,,,,,
+PRE-09,"Start screen, presets, import and export",Import partial spec fills defaults,P1,Functional,L,"File: {""name"":""partial"",""loop"":{""maxSteps"":3}}.",1. Import it.,"name=partial, maxSteps=3, everything else at defaults; spec valid.",,,,,
+PRE-10,"Start screen, presets, import and export",Import invalid JSON,P1,Negative,L,A file containing `{not json`.,1. Import it.,Error toast 'Import failed: …'; current draft untouched.,,,,,
+PRE-11,"Start screen, presets, import and export",Import non-object JSON,P2,Negative,L,"A file containing `[1,2]`.",1. Import it.,Toast 'Import failed: Expected a JSON object'.,,,,,
+PRE-12,"Start screen, presets, import and export",Import over an existing draft asks first,P2,Functional,L,A draft in progress.,"1. Click Import, cancel the confirm.",Confirm text 'Importing replaces the current agent. Continue?'; cancel keeps the draft.,,,,,
+PRE-13,"Start screen, presets, import and export",Copy spec,P2,Functional,L,,"1. Build step → Copy spec, paste into an editor.",Clipboard holds the full spec JSON; toast 'Copied to clipboard'.,,,,,
+IDN-01,Identity & API (server),Name validation,P0,Validation,L,,"1. Try names: `a`, `agent_1-x`, 64 chars, 65 chars, `has space`, `émoji`, empty.","Valid: first three. Invalid (error `name: use 1-64 letters…`): 65 chars, space, non-ASCII, empty.",,,,,
+IDN-02,Identity & API (server),Advertised model id,P0,Functional,B,run qa-base server.modelId=my-model,"1. `curl localhost:8090/v1/models`
+2. `curl localhost:8090/v1/models/my-model`
+3. `curl localhost:8090/v1/models/other`","List contains one model `my-model` (owned_by openharness). Single lookup 200. Unknown id → 404 'model not found'. Chat responses carry `""model"": ""my-model""`.",,,,,
+IDN-03,Identity & API (server),Client may send any model name,P1,Functional,B,run qa-base,"1. send ""hi"" --body '{""model"":""gpt-4o""}'",Request succeeds; the configured upstream model is used (mock /requests shows mock-primary).,,,,,
+IDN-04,Identity & API (server),Host and port,P0,Functional,B,run qa-base server.host=0.0.0.0 server.port=8095,1. From another machine on the LAN: `curl http://<ip>:8095/healthz`.,Reachable on all interfaces at port 8095. With host 127.0.0.1 it is not reachable from other machines.,,,,,
+IDN-05,Identity & API (server),Port validation,P1,Validation,L,,"1. Set port 0, 70000, 65535.",0 and 70000 → `server.port: must be 1-65535`; 65535 valid.,,,,,
+IDN-06,Identity & API (server),Bearer auth: missing / wrong / right key,P0,Security,B,"`export QA_HARNESS_KEYS=k1,k2` then run qa-base server.authMode=bearer","1. send ""hi""
+2. send ""hi"" --header 'Authorization: Bearer nope'
+3. send ""hi"" --header 'Authorization: Bearer k2'",First two → HTTP 401 `invalid API key`. Third → 200. Any key in the comma list works.,,,,,
+IDN-07,Identity & API (server),Bearer auth with env var unset,P1,Negative,B,`unset QA_HARNESS_KEYS`; run qa-base server.authMode=bearer,"1. send ""hi"" --header 'Authorization: Bearer x'",HTTP 500 `server auth is enabled but QA_HARNESS_KEYS is not set`.,,,,,
+IDN-08,Identity & API (server),Bearer auth requires env var name,P2,Validation,L,,"1. Auth mode bearer, clear 'Accepted keys env var'.",Error `server.apiKeyEnv: required when authMode is bearer`.,,,,,
+IDN-09,Identity & API (server),"Auth scope: /healthz open, /v1/* protected",P1,Security,B,As IDN-06.,"1. `curl localhost:8090/healthz`
+2. `curl localhost:8090/v1/models`
+3. `curl localhost:8090/v1/harness`",/healthz 200 without a key; /v1/models and /v1/harness 401 without a key.,,,,,
+IDN-10,Identity & API (server),CORS allow-list,P1,Functional,B,"run qa-base 'server.corsOrigins=[""https://app.example""]'","1. `curl -i -X OPTIONS localhost:8090/v1/chat/completions -H 'Origin: https://app.example'`
+2. Same with `Origin: https://evil.example`.","Allowed origin: 204 with Access-Control-Allow-Origin echoing it, Allow-Headers incl. Authorization and X-Session-Id, Expose-Headers X-Harness-Trace-Id. Other origin: no ACAO header.",,,,,
+IDN-11,Identity & API (server),CORS wildcard and disabled,P2,Functional,B,,"1. Run with corsOrigins=[""*""] and an arbitrary Origin.
+2. Run with corsOrigins=[].",`*`: any origin echoed. Empty: no CORS headers at all.,,,,,
+IDN-12,Identity & API (server),Stream tool activity on/off,P0,Functional,B,,"1. run qa-base server.streamToolEvents=false; send '[[tool:calculator {""expression"":""1+1""}]]' --stream
+2. Repeat with streamToolEvents=true.","Off: no `reasoning_content` deltas, content only. On: activity `▸ calculator …` and `✓ 2` arrive as reasoning_content before the answer.",,,,,
+IDN-13,Identity & API (server),Request timeout,P1,Functional,B,run qa-base server.requestTimeoutSec=3,"1. send ""[[slow:6]] hi""",Request fails after ~3 s (non-stream: HTTP 502 with a deadline/context error).,,,,,
+IDN-14,Identity & API (server),GET /v1/harness strips secrets,P0,Security,B,"run qa-base model.apiKey=sk-inline-secret 'model.fallbacks=[{""provider"":""openai"",""baseUrl"":""http://127.0.0.1:18098/v1"",""model"":""b"",""apiKey"":""sk-fb-secret""}]'",1. `curl localhost:8090/v1/harness`,Spec returned with `apiKey` empty for the model and every fallback; `tools` lists registered tool names.,,,,,
+IDN-15,Identity & API (server),Description shown in spec and models,P2,Functional,B,,"1. Set description, run, GET /v1/harness.",Description present in the returned spec.,,,,,
+MOD-01,Model adapter,OpenAI-compatible provider basics,P0,Functional,B,run qa-base,"1. send ""hello""
+2. inspect mock -n 1",Reply 'Hello from mock (model=mock-primary)'. Upstream request went to /v1/chat/completions with stream=true and stream_options.include_usage.,,,,,
+MOD-02,Model adapter,Anthropic provider basics,P0,Functional,B,run qa-anthropic,"1. send ""[[echo-params]]""
+2. send '[[tool:calculator {""expression"":""2+2""}]]' --stream",Upstream path /v1/messages with headers anthropic-version 2023-06-01 and x-api-key. Tool call round-trips: content 'TOOL_RESULT: 4'.,,,,,
+MOD-03,Model adapter,Anthropic message conversion,P1,Functional,B,run qa-anthropic,"1. send ""[[echo-messages]]"" --system 'extra system'
+2. Send a history starting with an assistant message (--history file).",System messages are hoisted into the `system` field; a conversation starting with assistant gets a '(continuing conversation)' user turn first; consecutive same-role turns are merged.,,,,,
+MOD-04,Model adapter,API key from env var,P0,Security,B,`export QA_MODEL_KEY=sk-test-123`; run qa-base model.apiKeyEnv=QA_MODEL_KEY,"1. send ""[[echo-params]]""",Mock sees `Authorization: Bearer sk-test…`. Key is not in the binary (`--print-spec` shows only the env var name).,,,,,
+MOD-05,Model adapter,Inline API key,P1,Security,B,run qa-base model.apiKey=sk-inline-abc model.apiKeyEnv=,"1. send ""[[echo-params]]""",Mock sees `Bearer sk-inline…`. UI shows a warning that inline keys are baked into the binary.,,,,,
+MOD-06,Model adapter,No key configured,P2,Functional,B,run qa-base model.apiKeyEnv=,"1. send ""[[echo-params]]""",No Authorization header sent (keyless local servers such as Ollama work).,,,,,
+MOD-07,Model adapter,Temperature / top_p / max_tokens from spec,P0,Functional,B,run qa-base model.temperature=0.7 model.topP=0.9 model.maxTokens=321,"1. send ""[[echo-params]]""","temperature 0.7, top_p 0.9, max_tokens 321.",,,,,
+MOD-08,Model adapter,Null temperature / topP omitted,P1,Functional,B,run qa-base model.temperature=null,"1. send ""[[echo-params]]""",temperature null (not sent upstream).,,,,,
+MOD-09,Model adapter,Client params respected,P0,Functional,B,run qa-base model.clientParamPolicy=respect,"1. send ""[[echo-params]]"" --body '{""temperature"":0.1,""top_p"":0.5,""max_tokens"":50}'
+2. send ""[[echo-params]]"" --body '{""max_tokens"":50,""max_completion_tokens"":77}'",First: 0.1 / 0.5 / 50. Second: max_tokens 77 (max_completion_tokens wins).,,,,,
+MOD-10,Model adapter,Client params ignored,P1,Functional,B,run qa-base model.clientParamPolicy=ignore,"1. send ""[[echo-params]]"" --body '{""temperature"":0.1,""max_tokens"":50}'","Spec values used (0.3, 1024).",,,,,
+MOD-11,Model adapter,Reasoning effort (OpenAI only),P2,Functional,B,run qa-base model.reasoningEffort=high,"1. send ""[[echo-params]]""
+2. Repeat on qa-anthropic.",OpenAI: reasoning_effort 'high' sent. Anthropic: not sent.,,,,,
+MOD-12,Model adapter,Extra body fields,P1,Functional,B,"run qa-base 'model.extraBody={""seed"":7,""service_tier"":""flex""}'","1. send ""[[echo-params]]""",extra_keys contains seed and service_tier.,,,,,
+MOD-13,Model adapter,Extra headers,P1,Functional,B,"run qa-base 'model.extraHeaders={""X-Org"":""qa""}'","1. send ""[[echo-params]]""",headers include X-Org: qa.,,,,,
+MOD-14,Model adapter,Retries on 5xx with backoff,P0,Functional,B,run qa-base model.retries=2,"1. reset; send ""[[fail-once:500]] [[say:ok]]""
+2. inspect stats",Reply 'ok'; mock-primary received 2 requests (1 failure + 1 retry); warning logged 'model call failed'.,,,,,
+MOD-15,Model adapter,Retries on 429,P1,Functional,B,As MOD-14.,"1. send ""[[fail-once:429]] [[say:ok]]""",Reply 'ok' after one retry.,,,,,
+MOD-16,Model adapter,No retry on 4xx (except 429),P0,Functional,B,run qa-base model.retries=3,"1. reset; send ""[[status:400]]""
+2. inspect stats",HTTP 502 'model API returned 400…'; exactly 1 upstream request.,,,,,
+MOD-17,Model adapter,Retries exhausted,P1,Negative,B,run qa-base model.retries=2,"1. reset; send ""[[status:500]]""
+2. inspect stats","HTTP 502; 3 upstream requests (1 + 2 retries), spaced by increasing backoff (~0.5 s, ~2 s).",,,,,
+MOD-18,Model adapter,Fallback chain,P0,Functional,B,"run qa-base model.model=fail-500-primary model.retries=1 'model.fallbacks=[{""provider"":""openai"",""baseUrl"":""http://127.0.0.1:18098/v1"",""model"":""backup-model"",""apiKeyEnv"":""""}]'","1. reset; send ""[[echo-params]]""
+2. inspect stats
+3. inspect trace -n 3","Answer comes from backup-model; stats: fail-500-primary 2, backup-model 1; trace llm/response model=backup-model.",,,,,
+MOD-19,Model adapter,Fallback on 4xx,P1,Functional,B,As MOD-18 with model.model=fail-401-primary.,"1. send ""hi""","No retries on the 401 primary (1 request), then the fallback answers.",,,,,
+MOD-20,Model adapter,Cross-provider fallback,P1,Functional,B,"Primary openai fail-500-x; fallback {provider: anthropic, baseUrl: http://127.0.0.1:18098, model: mock-claude}.","1. send ""hello""",Anthropic fallback answers 'Hello from mock (model=mock-claude)'.,,,,,
+MOD-21,Model adapter,Model call timeout,P1,Functional,B,run qa-base model.timeoutSec=2 model.retries=0,"1. send ""[[slow:5]] hi""",Fails after ~2 s with HTTP 502 (client timeout).,,,,,
+MOD-22,Model adapter,finish_reason length passes through,P2,Functional,B,run qa-base,"1. send ""[[length]]""",finish_reason `length`.,,,,,
+MOD-23,Model adapter,Provider / required field validation,P0,Validation,L,,1. Clear model name; clear base URL; set a fallback with empty model.,"Errors: `model.model: required`, `model.baseUrl: required`, `model.fallbacks[0].model: required`.",,,,,
+MOD-24,Model adapter,Quick-fill buttons,P2,UI,L,,"1. Click DeepSeek, OpenAI, Anthropic, Ollama, OpenRouter quick-fills.","Provider, base URL, model and key env var are filled with that vendor's values.",,,,,
+MOD-25,Model adapter,JSON fields reject invalid JSON,P2,Validation,L,,1. Type `{bad` into Extra body.,Inline JSON error; spec not updated until valid.,,,,,
+PRM-01,System prompt assembly,Base system prompt,P0,Functional,B,run qa-base prompt.includeDateTime=false,"1. send ""[[echo-system]]""",Reply starts with 'You are the QA agent.',,,,,
+PRM-02,System prompt assembly,"Sections: enabled, disabled, order",P0,Functional,B,"run qa-kitchen-sink (Style enabled, 'Disabled section' disabled)","1. send ""[[echo-system]]"" --session prm2",Contains '## Style\nAnswer in short sentences.'; does NOT contain 'THIS MUST NOT APPEAR'. Reordering in the UI changes the order.,,,,,
+PRM-03,System prompt assembly,Date and time line,P1,Functional,B,,"1. includeDateTime on, then off; send ""[[echo-system]]"".","On: 'Current date and time: <weekday, date time zone>'. Off: absent.",,,,,
+PRM-04,System prompt assembly,Tool summary,P1,Functional,B,run qa-base prompt.includeToolSummary=true,"1. send ""[[echo-system]]""","'## Available tools' lists current_time, calculator, todo with descriptions. With loop.strategy=single_shot the list is absent.",,,,,
+PRM-05,System prompt assembly,Client system policy: append,P0,Functional,B,run qa-base prompt.clientSystemPolicy=append,"1. send ""[[echo-system]]"" --system 'CLIENT-SYS'",Base prompt kept; ends with '## Additional instructions from the caller\nCLIENT-SYS'.,,,,,
+PRM-06,System prompt assembly,Client system policy: replace,P0,Functional,B,prompt.clientSystemPolicy=replace,"1. send ""[[echo-system]]"" --system 'CLIENT-SYS'
+2. send ""[[echo-system]]"" (no system)",With a client system message: base prompt replaced by 'CLIENT-SYS' (sections etc. still appended). Without: base prompt used.,,,,,
+PRM-07,System prompt assembly,Client system policy: ignore,P1,Functional,B,prompt.clientSystemPolicy=ignore,"1. send ""[[echo-system]]"" --system 'CLIENT-SYS'",'CLIENT-SYS' absent.,,,,,
+PRM-08,System prompt assembly,Developer role treated as system,P2,Functional,B,policy append,"1. Send messages [{role: developer, content: DEV-MSG}, {role: user, content: [[echo-system]]}] via --history.",DEV-MSG appears under 'Additional instructions from the caller'.,,,,,
+PRM-09,System prompt assembly,Assembled prompt preview in UI,P2,UI,L,,"1. Edit system prompt, sections, notes, skills; watch the preview.",Preview reflects edits live in the documented order.,,,,,
+PRM-10,System prompt assembly,Section order in full prompt,P1,Functional,B,run qa-kitchen-sink,"1. send ""[[echo-system]]"" --session prm10",Order: base → sections → date → Available tools → Skills → Notes → What you remember → memory tool hint → Context from hooks → caller instructions.,,,,,
+TLB-01,Built-in tools,current_time default and time zone,P1,Functional,B,,"1. send '[[tool:current_time {}]]'
+2. send '[[tool:current_time {""timezone"":""Asia/Tokyo""}]]'
+3. send '[[tool:current_time {""timezone"":""Mars/Base""}]]'","UTC time; Tokyo time with JST; third → 'Error: unknown time zone ""Mars/Base""'.",,,,,
+TLB-02,Built-in tools,calculator correctness,P0,Functional,B,,"1. Expressions: `2+3*4`, `(2+3)*4`, `2^3^2`, `2**10`, `10 % 4`, `sqrt(16)+abs(-2)`, `1e3/4`, `pi`, `round(2.5)`, `0.1+0.2`","14, 20, 512, 1024, 2, 6, 250, 3.14159265358979, 3, 0.3 (15 significant digits).",,,,,
+TLB-03,Built-in tools,calculator errors,P1,Negative,B,,"1. Expressions: `1/0`, `2+`, `foo(1)`, `sqrt 4`, `2)`","Errors: division by zero; unexpected end; unknown function ""foo""; sqrt needs parentheses; unexpected ')' — returned as tool errors, agent keeps running.",,,,,
+TLB-04,Built-in tools,http_fetch HTML to text,P0,Functional,B,,"1. send '[[tool:http_fetch {""url"":""http://127.0.0.1:18099/page""}]]'","Result starts 'HTTP 200 http://127.0.0.1:18099/page' and contains 'The magic number is 4242.', 'alpha', 'beta'; does NOT contain 'should-not-appear' or CSS.",,,,,
+TLB-05,Built-in tools,http_fetch domain allow-list,P0,Security,B,"fetch.allowedDomains=[""127.0.0.1""]","1. Fetch http://localhost:18099/page
+2. Set allowedDomains=[""*.example.com""], fetch https://sub.example.com/ and https://example.org/","localhost → 'domain ""localhost"" is not in the allowlist'. Subdomains of example.com allowed; example.org rejected. Empty list = any domain.",,,,,
+TLB-06,Built-in tools,http_fetch scheme restriction,P1,Security,B,,1. Fetch `file:///etc/passwd` and `ftp://x`.,'only http(s) URLs are allowed'.,,,,,
+TLB-07,Built-in tools,http_fetch maxBytes,P1,Functional,B,tools.fetch.maxBytes=1000,1. Fetch http://127.0.0.1:18099/big,Body cut to 1000 bytes (no error).,,,,,
+TLB-08,Built-in tools,read_file / list_dir,P0,Functional,B,Create qa-data/workspace/docs/a.txt with 5 lines.,"1. list_dir {}
+2. list_dir {""path"":""docs""}
+3. read_file {""path"":""docs/a.txt""}
+4. read_file with offset 2, limit 2
+5. list_dir on an empty folder","Directories end with '/', files show '(N bytes)'; full file; lines 2–3 only; '(empty directory)'.",,,,,
+TLB-09,Built-in tools,write_file creates folders,P0,Functional,B,files.readOnly=false,"1. send '[[tool:write_file {""path"":""new/dir/x.txt"",""content"":""hi""}]]'",'wrote 2 bytes to new/dir/x.txt'; file exists under qa-data/workspace/new/dir/.,,,,,
+TLB-10,Built-in tools,write_file read-only workspace,P0,Security,B,tools.files.readOnly=true,1. write_file as in TLB-09.,'Error: the workspace is read-only'; nothing written.,,,,,
+TLB-11,Built-in tools,Workspace escape blocked,P0,Security,B,,"1. read_file ../../etc/hosts
+2. read_file /etc/hosts
+3. write_file ../outside.txt
+4. Create a symlink qa-data/workspace/link → /etc, read_file link/hosts",Every attempt → 'path … is outside the workspace'; no file outside qa-data/workspace is read or created.,,,,,
+TLB-12,Built-in tools,shell allow-list,P0,Security,B,"shell.allowedCommands=[ls,echo,cat]","1. shell {command: echo, args: [hi there]}
+2. shell {command: rm, args: [-rf, x]}
+3. shell {command: /bin/ls}
+4. shell {command: ""echo; rm""}",'hi there'; rm → not in the allowlist (lists allowed); path → 'command must be a bare program name'; injection attempt → not allowed (no shell interpretation).,,,,,
+TLB-13,Built-in tools,"shell runs in workspace, no shell expansion",P1,Security,B,,"1. shell {command: echo, args: [""$HOME"", ""*""]}
+2. shell {command: ls}",Literal '$HOME *' echoed (no expansion); ls lists the workspace root.,,,,,
+TLB-14,Built-in tools,shell exit codes and empty output,P1,Functional,B,,"1. shell {command: cat, args: [missing.txt]}
+2. shell {command: ls, args: [empty-dir]}","Error text plus '[exit: exit status 1]'; empty output → '(no output, exit 0)'.",,,,,
+TLB-15,Built-in tools,shell timeout,P1,Functional,B,"allowedCommands=[sleep], shell.timeoutSec=2","1. shell {command: sleep, args: [5]}",Killed after ~2 s with an exit error.,,,,,
+TLB-16,Built-in tools,shell empty allow-list means any command,P2,Security,B,allowedCommands=[],1. shell {command: whoami},Runs (if permission allows). UI warns this is high risk.,,,,,
+TLB-17,Built-in tools,todo set / done / list,P1,Functional,B,,"1. send '[[tool:todo {""action"":""set"",""items"":[""a"",""b""]}]] [[tool:todo {""action"":""done"",""indexes"":[2]}]]' with tools.parallel=false
+2. Then action list / action foo",'1. [ ] a\n2. [x] b'; unknown action → error. The list resets every request.,,,,,
+TLB-18,Built-in tools,Unknown built-in rejected,P1,Validation,L,"Import a spec with tools.builtins=[""teleport""].",1. Validate.,"`tools.builtins: unknown tool ""teleport""`.",,,,,
+TLB-19,Built-in tools,Disabled built-ins are not offered,P0,Functional,B,"run qa-base (current_time, calculator, todo)","1. send '[[tool:shell {""command"":""ls""}]]'
+2. inspect mock -n 1","Upstream request lists 3 tools; calling shell → 'Error: unknown tool ""shell""'.",,,,,
+TLH-01,HTTP tools,GET tool: URL placeholders and query args,P0,Functional,B,,"1. send '[[tool:qa_lookup {""id"":""A 1"",""verbose"":true}]]'","Webhook receives GET /tool?id=A+1&verbose=true (placeholder URL-encoded, remaining args as query).",,,,,
+TLH-02,HTTP tools,POST tool: JSON body,P0,Functional,B,,"1. send '[[tool:qa_create {""title"":""hi""}]]'","POST with JSON body {""title"":""hi""} and Content-Type application/json.",,,,,
+TLH-03,HTTP tools,Header env expansion keeps secrets out of the spec,P0,Security,B,,"1. Run both tools; inspect webhook.
+2. `--print-spec` on the binary.",Webhook sees X-QA: tok123 and Authorization: Bearer tok123; the spec only contains `${QA_TOOL_TOKEN}`.,,,,,
+TLH-04,HTTP tools,Upstream error status,P1,Negative,B,Change qa_lookup URL to …/tool?status=404&id={{id}},1. Call it.,Tool error 'HTTP 404: …'; the model sees it and the turn continues.,,,,,
+TLH-05,HTTP tools,Upstream unreachable,P1,Negative,B,URL http://127.0.0.1:1/x,1. Call the tool.,Tool error (connection refused); no crash.,,,,,
+TLH-06,HTTP tools,Tool timeout,P1,Functional,B,tools.timeoutSec=2; URL …/tool?delay=5000,1. Call it.,Tool error after ~2 s (context deadline).,,,,,
+TLH-07,HTTP tools,Default method and parameters,P2,Functional,B,HTTP tool with method empty and parameters empty.,1. Call it with {}.,POST is used; tool offered with an empty object schema.,,,,,
+TLH-08,HTTP tools,Name validation and duplicates,P1,Validation,L,,"1. Add tools named `bad name`, two named `dup`, one with empty URL, one with parameters `{bad`.","Errors: invalid name; duplicate ""dup""; url required; parameters not valid JSON.",,,,,
+TLH-09,HTTP tools,Large response truncation,P1,Functional,B,"tools.resultMaxChars=500, URL …/tool?big=5000",1. Call it.,Result truncated to ~500 chars with '…[N chars truncated]…' (head+tail).,,,,,
+TLM-01,MCP servers,Both servers connect and list tools,P0,Functional,B,,"1. Read the agent log.
+2. `curl localhost:8090/v1/harness`","Log: 'MCP server connected server=qastdio tools=5' and 'qahttp tools=3'. Tools mcp_qastdio_{echo,add,env,fail,slow}, mcp_qahttp_{echo,add,fail}.",,,,,
+TLM-02,MCP servers,stdio tool call,P0,Functional,B,,"1. send '[[tool:mcp_qastdio_add {""a"":2,""b"":3}]]'",TOOL_RESULT: 5.,,,,,
+TLM-03,MCP servers,stdio env injection,P1,Functional,B,,"1. send '[[tool:mcp_qastdio_env {""name"":""MCP_QA_VAR""}]]'",'hello-from-spec'.,,,,,
+TLM-04,MCP servers,MCP isError result,P1,Negative,B,,1. Call mcp_qastdio_fail and mcp_qahttp_fail.,Tool error 'deliberate MCP failure'; turn continues.,,,,,
+TLM-05,MCP servers,HTTP transport (JSON and SSE replies),P0,Functional,B,,"1. Call mcp_qahttp_add {a:1,b:2}.
+2. Change qahttp URL to …/mcp?sse=1, restart, repeat.",'3' both times; Mcp-Session-Id is echoed on later requests (webhook log).,,,,,
+TLM-06,MCP servers,Unavailable server does not block start-up,P0,Negative,B,Add stdio server with command `does-not-exist` and an http server at http://127.0.0.1:1/mcp.,"1. Start the agent.
+2. send ""hi""",Warnings 'MCP server unavailable; continuing without it'; agent serves requests; other tools work.,,,,,
+TLM-07,MCP servers,MCP tool timeout,P1,Functional,B,tools.timeoutSec=2,"1. send '[[tool:mcp_qastdio_slow {""seconds"":5}]]'",Tool error after ~2 s; the agent keeps running and the server stays usable.,,,,,
+TLM-08,MCP servers,Permission group mcp:<server>,P0,Security,B,"permissions.toolPolicies={""mcp:qastdio"":""deny""}",1. Call mcp_qastdio_echo and mcp_qahttp_echo.,qastdio → 'permission denied … denied by policy'; qahttp allowed. An exact tool-name policy overrides the group.,,,,,
+TLM-09,MCP servers,MCP validation,P1,Validation,L,,1. stdio without command; http without URL; name with spaces; transport 'ws'.,Errors: command required for stdio; url required for http; invalid name; transport must be stdio or http.,,,,,
+TLM-10,MCP servers,MCP processes cleaned up,P1,Resilience,B,,"1. Start the agent, Ctrl-C it.
+2. `ps aux | grep mcp_stdio_server`",No orphaned MCP server processes remain.,,,,,
+TLM-11,MCP servers,Long tool names truncated to 64 chars,P2,Functional,B,MCP server named with 40 chars exposing a 40-char tool.,1. List tools.,"Exposed name is `mcp_<server>_<tool>` cut to 64 chars, invalid characters replaced with '_'.",,,,,
+TLP-01,Tool execution pipeline,Parallel tool calls,P0,Functional,B,tools.parallel=true maxParallel=4; add mcp qastdio,"1. send '[[tool:mcp_qastdio_slow {""seconds"":2}]] [[tool:mcp_qastdio_slow {""seconds"":2}]] [[tool:mcp_qastdio_slow {""seconds"":2}]]'",Finishes in ~2 s (concurrent). Results returned in call order.,,,,,
+TLP-02,Tool execution pipeline,maxParallel cap,P1,Functional,B,As TLP-01 with maxParallel=1,1. Same request.,~6 s (one at a time).,,,,,
+TLP-03,Tool execution pipeline,Sequential execution preserves order,P0,Functional,B,qa-kitchen-sink tools.parallel=false,"1. send '[[tool:write_file {""path"":""o.txt"",""content"":""v1""}]] [[tool:read_file {""path"":""o.txt""}]]'",'wrote 2 bytes … || v1'. NOTE: with parallel=true the read may run before the write (expected for concurrent calls).,,,,,
+TLP-04,Tool execution pipeline,Result truncation head_tail vs head,P1,Functional,B,qa-kitchen-sink tools.resultMaxChars=200,"1. Fetch http://127.0.0.1:18099/big with resultTruncation=head_tail, then head.",head_tail: start + '…[N chars truncated]…' + end. head: start + '…[N chars truncated]'.,,,,,
+TLP-05,Tool execution pipeline,Client tool passthrough,P0,Functional,B,tools.clientToolsPolicy=passthrough,"1. send '[[tool:get_weather {""city"":""Paris""}]]' --body '{""tools"":[{""type"":""function"",""function"":{""name"":""get_weather"",""parameters"":{""type"":""object""}}}]}'","finish_reason tool_calls; tool_calls[0].function.name get_weather with arguments {""city"": ""Paris""}.",,,,,
+TLP-06,Tool execution pipeline,Client tool round trip,P0,Functional,B,As TLP-05.,"1. Send history: user(directive) → assistant(tool_calls from TLP-05) → tool(tool_call_id, '18C sunny').",Final answer 'TOOL_RESULT: 18C sunny'.,,,,,
+TLP-07,Tool execution pipeline,Client tools ignored,P1,Functional,B,tools.clientToolsPolicy=ignore,"1. Same as TLP-05.
+2. inspect mock -n 1",get_weather not sent upstream; call → 'unknown tool'.,,,,,
+TLP-08,Tool execution pipeline,Internal tool wins name collision,P2,Functional,B,,1. Pass a client tool named `calculator`.,Only the built-in calculator is offered and executed server-side.,,,,,
+TLP-09,Tool execution pipeline,tool_choice none / required / named,P1,Functional,B,,"1. send ""[[echo-params]]"" --body '{""tool_choice"":""none""}'
+2. Same with ""required"" and {""type"":""function"",""function"":{""name"":""calculator""}}",none: tools list empty. required/named: tool_choice forwarded (Anthropic: mapped to any / tool).,,,,,
+TLP-10,Tool execution pipeline,Invalid tool-call arguments,P1,Negative,B,,1. send '[[tool:calculator not-json]]',"Tool receives {""_raw"":…} → error 'invalid arguments' or calculator error; turn continues.",,,,,
+TLP-11,Tool execution pipeline,Unknown tool requested by model,P1,Negative,B,,1. send '[[tool:nope {}]]',"'Error: unknown tool ""nope""'; turn continues.",,,,,
+TLP-12,Tool execution pipeline,Activity lines for tools,P2,UI,B,streamToolEvents=true,1. Successful and failing tool calls with --stream.,Activity shows '▸ name args' then '  ✓ preview' or '  ✗ error'. Long args/results shortened.,,,,,
+SKL-01,Skills,"Progressive: index in prompt, body on demand",P0,Functional,B,run qa-kitchen-sink,"1. send ""[[echo-system]]"" --session s1
+2. send '[[tool:load_skill {""name"":""refunds""}]]' --session s2",Prompt has '## Skills' listing refunds and shipping with descriptions but NOT 'SKILL-REFUNDS-BODY'. load_skill returns '# Skill: refunds' + body.,,,,,
+SKL-02,Skills,load_skill enum and unknown skill,P1,Negative,B,,"1. inspect mock (tool schema)
+2. send '[[tool:load_skill {""name"":""nope""}]]'","Schema enum = [refunds, shipping]; unknown → 'unknown skill ""nope""'.",,,,,
+SKL-03,Skills,Eager mode,P0,Functional,B,qa-kitchen-sink skills.mode=eager,"1. send ""[[echo-system]]""
+2. List tools.",Prompt contains '## Skill: refunds' with full body; load_skill tool absent.,,,,,
+SKL-04,Skills,"No skills → no tool, no section",P1,Functional,B,run qa-base,1. [[echo-system]]; list tools.,"No Skills section, no load_skill.",,,,,
+SKL-05,Skills,Skill name validation,P2,Validation,L,,1. Skill named `bad name`.,`skills.items[0].name: invalid`.,,,,,
+SKL-06,Skills,Skills via UI editor,P2,UI,L,,"1. Add, edit, reorder and delete skills.",Changes reflected in spec JSON and the prompt preview.,,,,,
+MEM-01,Memory,Static notes injected,P0,Functional,B,,"1. send ""[[echo-system]]""",'## Notes\nQA-STATIC-NOTE: the customer prefers email.',,,,,
+MEM-02,Memory,memory_save persists to disk,P0,Functional,B,,"1. send '[[tool:memory_save {""text"":""likes tea""}]]' --user alice
+2. cat qa-data/memory.json","'saved as m…'; file has an entry {scope: alice, text: likes tea}. File mode 0600.",,,,,
+MEM-03,Memory,Auto-inject recent memories,P0,Functional,B,After MEM-02.,"1. send ""[[echo-system]]"" --user alice",'## What you remember' lists '[m…] likes tea'.,,,,,
+MEM-04,Memory,Per-user isolation,P0,Security,B,After MEM-02.,"1. send ""[[echo-system]]"" --user bob
+2. send '[[tool:memory_search {""query"":""tea""}]]' --user bob",Bob sees no 'likes tea' and search returns '(no matching memories)'.,,,,,
+MEM-05,Memory,Scope key fallback order,P1,Functional,B,,1. Save with no user but X-Session-Id s9; then search with --session s9; then with neither.,"Scope = user field, else session id, else 'default'.",,,,,
+MEM-06,Memory,Global scope,P1,Functional,B,memory.scope=global,"1. Save as alice, search as bob.",Bob finds alice's memory.,,,,,
+MEM-07,Memory,memory_search ranking and limit,P2,Functional,B,"Save 'tea green', 'tea black', 'coffee'.","1. search {query: 'tea green'}
+2. search {query: '', limit: 2}",Best overlap first; empty query → 2 most recent.,,,,,
+MEM-08,Memory,memory_delete,P1,Functional,B,,"1. Delete an existing id, then the same id again, then another user's id.",'deleted'; then 'no memory with id …' (other users' ids can't be deleted).,,,,,
+MEM-09,Memory,autoInject=0 and tools off,P1,Functional,B,memory.autoInject=0 memory.enableTools=false,1. [[echo-system]]; list tools.,"No 'What you remember', no memory hint, no memory_* tools.",,,,,
+MEM-10,Memory,Persistent off,P1,Functional,B,memory.persistent=false,1. List tools; [[echo-system]].,No memory tools or injection; static notes still present.,,,,,
+MEM-11,Memory,Survives restart,P0,Functional,B,After MEM-02.,1. Restart the agent; [[echo-system]] as alice.,Memory still injected.,,,,,
+MEM-12,Memory,Corrupt memory file,P2,Negative,B,Write `{oops` to qa-data/memory.json.,1. Start the agent.,Start-up fails with 'memory file … is corrupt'.,,,,,
+MEM-13,Memory,Concurrent saves,P2,Resilience,B,,1. Fire 20 parallel memory_save requests (different texts).,All 20 entries present; file valid JSON.,,,,,
+SES-01,Sessions,Stateless mode ignores history,P0,Functional,B,run qa-base,"1. send ""[[echo-messages]]"" --session a twice.",Both replies 'MESSAGES 2' (system + user). No files in qa-data/sessions.,,,,,
+SES-02,Sessions,Server mode with latest-message clients,P0,Functional,B,run qa-base sessions.mode=server,"1. send ""one"" --session s1
+2. send ""[[echo-messages]]"" --session s1","Second request upstream has system, user(one), assistant, user. qa-data/sessions/s1.jsonl exists.",,,,,
+SES-03,Sessions,Server mode with full-transcript clients,P0,Functional,B,As SES-02.,"1. Turn 1: send ""first"" --session s2.
+2. Turn 2: send the full transcript [user first, assistant <reply>, user [[echo-messages]]].",No duplication: upstream sees exactly one 'first' user turn.,,,,,
+SES-04,Sessions,Repeated identical message is not dropped,P0,Regression,B,As SES-02.,"1. send ""continue"" --session s3
+2. send ""continue"" --session s3
+3. inspect mock -n 1","Second upstream request has 4 messages (system, user, assistant, user): the repeated 'continue' is appended, not mistaken for a re-sent transcript.",,,,,
+SES-05,Sessions,Session isolation,P0,Security,B,As SES-02.,1. Session A says 'secret A'; session B asks [[echo-messages]].,B's upstream history has no A messages.,,,,,
+SES-06,Sessions,Custom header name,P1,Functional,B,sessions.headerName=X-Conversation,1. Send with --header 'X-Conversation: c1' twice.,History kept for c1; X-Session-Id is ignored.,,,,,
+SES-07,Sessions,`user` field as session fallback,P1,Functional,B,Server mode.,1. Send twice with --user u1 and no header.,History persisted under u1.,,,,,
+SES-08,Sessions,maxMessages trimming,P1,Functional,B,sessions.maxMessages=4,1. Hold a 5-turn conversation; then [[echo-messages]].,At most 4 stored messages loaded; history never starts with an orphan tool message.,,,,,
+SES-09,Sessions,Tool calls persisted in session,P1,Functional,B,Server mode.,"1. Turn with a calculator call, then a follow-up.",JSONL holds the assistant tool_calls and tool result; follow-up upstream includes them.,,,,,
+SES-10,Sessions,Unsafe session ids are hashed,P1,Security,B,Server mode.,1. --session '../../etc/x',File created inside the sessions dir with a hashed name; nothing written outside.,,,,,
+SES-11,Sessions,Survives restart,P1,Functional,B,Server mode.,"1. Two turns, restart, third turn with [[echo-messages]].",History intact.,,,,,
+CTX-01,Context management,Sliding window compaction,P0,Functional,B,run qa-base context.maxContextTokens=60 context.keepRecentMessages=2,1. Send a history of 8 long messages (60 words each) + '[[echo-messages]]' --stream.,"Activity 'Compacted context (sliding_window): N → 4 messages'. Upstream: system, '[K earlier messages were removed…]' note, last 2 messages.",,,,,
+CTX-02,Context management,Summarize compaction,P0,Functional,B,As CTX-01 with context.strategy=summarize,1. Same request.,Extra upstream summary call; note 'Summary of the earlier conversation:\nSUMMARY OF …'. Trace event 'compaction'.,,,,,
+CTX-03,Context management,Summary failure falls back to sliding window,P1,Negative,B,As CTX-02.,"1. Same long history, but put [[fail-summary]] in the FIRST message (the summary call then gets HTTP 500).",Warning 'summarize compaction failed; falling back…'; turn still answers with the sliding-window note.,,,,,
+CTX-04,Context management,Strategy none,P1,Functional,B,"context.strategy=none, tiny maxContextTokens",1. Same request as CTX-01.,No compaction; all messages sent.,,,,,
+CTX-05,Context management,Trigger ratio,P1,Functional,B,maxContextTokens=1000,1. Find a history size that compacts at triggerRatio=0.5 but not at 0.9.,Compaction triggers only above ratio × budget.,,,,,
+CTX-06,Context management,Never cuts between a tool call and its result,P0,Functional,B,keepRecentMessages=2,"1. History ending … assistant(tool_calls), tool, tool, user.",Kept window never starts with a 'tool' message.,,,,,
+CTX-07,Context management,Tool-result pruning,P1,Functional,B,pruneToolResults=true pruneKeepLast=1 pruneMaxChars=100,"1. Multi-step turn fetching /big twice, then echo-messages.",Older tool result shortened to ~100 chars; newest kept intact.,,,,,
+CTX-08,Context management,Pruning off,P2,Functional,B,pruneToolResults=false,1. Same as CTX-07.,Tool results unchanged.,,,,,
+CTX-09,Context management,Validation,P2,Validation,L,,1. triggerRatio 0 and 1.5; strategy 'magic'.,"`context.triggerRatio: must be in (0, 1]`; strategy must be one of none, sliding_window, summarize.",,,,,
+CTX-10,Context management,Compaction with Anthropic,P1,Functional,B,qa-anthropic + CTX-01 settings,1. Same request.,Works; window starting with assistant is fixed up for Anthropic.,,,,,
+LOOP-01,Agent loop,ReAct multi-step,P0,Functional,B,run qa-base,"1. send '[[tool:calculator {""expression"":""6*7""}]]' --stream",Model → tool → model; answer 'TOOL_RESULT: 42'; usage is the sum of both calls.,,,,,
+LOOP-02,Agent loop,Plan then execute,P0,Functional,B,loop.strategy=plan_execute,"1. send '[[tool:calculator {""expression"":""1+1""}]]' --stream
+2. inspect mock -n 3",Activity 'Plan:\n1. Step one\n2. Step two'. First upstream call has no tools; later calls carry the plan as a system message right before the latest user message.,,,,,
+LOOP-03,Agent loop,Custom planning prompt,P2,Functional,B,"loop.planningPrompt='Please write a short numbered plan, QA.'",1. As LOOP-02.,Mock receives the custom prompt.,,,,,
+LOOP-04,Agent loop,Single shot,P0,Functional,B,loop.strategy=single_shot,"1. send '[[tool:calculator {}]]'
+2. inspect mock -n 1","One upstream call, no internal tools offered (client tools still pass through).",,,,,
+LOOP-05,Agent loop,maxSteps then summarize,P0,Functional,B,loop.maxSteps=3 loop.onMaxSteps=summarize,"1. send ""[[loop]]"" --stream","Activity 'Step limit reached…'; answer 'FINAL AFTER STEP LIMIT'; 4 upstream calls (3 + final, final with no tools).",,,,,
+LOOP-06,Agent loop,maxSteps then error,P0,Functional,B,loop.maxSteps=3 loop.onMaxSteps=error,"1. send ""[[loop]]""",HTTP 502 'agent did not finish within 3 steps'; on_error hook fires.,,,,,
+LOOP-07,Agent loop,maxToolCalls budget,P1,Functional,B,loop.maxSteps=20 loop.maxToolCalls=3,"1. send ""[[loop]]""",Calls beyond 3 get 'tool call budget for this request is exhausted'; the turn ends with the step-limit answer.,,,,,
+LOOP-08,Agent loop,Time budget,P1,Functional,B,loop.timeBudgetSec=2 loop.maxSteps=20,"1. send ""[[loop]] [[slow:1]]"" --stream","After ~2 s of steps: activity 'Time budget exhausted', then 'FINAL AFTER STEP LIMIT'.",,,,,
+LOOP-09,Agent loop,onToolError continue,P1,Functional,B,loop.onToolError=continue,"1. send '[[tool:calculator {""expression"":""1/0""}]]'",'TOOL_RESULT: Error: division by zero' — the model saw the error.,,,,,
+LOOP-10,Agent loop,onToolError stop,P0,Functional,B,loop.onToolError=stop,1. Same request.,Answer 'I stopped because a tool failed: division by zero'; no further model call.,,,,,
+LOOP-11,Agent loop,Self-check approves,P0,Functional,B,loop.selfCheck.enabled=true,"1. send ""hello"" --stream",Activity 'Self-check: approved'; answer unchanged; one extra upstream call.,,,,,
+LOOP-12,Agent loop,Self-check revises up to maxRevisions,P0,Functional,B,selfCheck.enabled=true maxRevisions=2,"1. send ""[[selfcheck:revise]] draft"" --stream",Two 'Self-check: revised the answer' lines; final 'REVISED ANSWER'.,,,,,
+LOOP-13,Agent loop,Self-check buffers streaming,P1,Functional,B,selfCheck on,"1. send ""hello"" --stream --raw",Content arrives in one chunk after the self-check (no draft tokens leak).,,,,,
+LOOP-14,Agent loop,Live streaming when nothing buffers,P1,Functional,B,"selfCheck off, no output rules, redactPII off","1. send ""[[say:a long answer …]]"" --stream --raw",Content arrives in multiple chunks as the model streams.,,,,,
+LOOP-15,Agent loop,Validation,P1,Validation,L,,1. maxSteps 0; strategy 'tree'; onToolError 'retry'; onMaxSteps 'ignore'.,Each rejected with the allowed values.,,,,,
+LOOP-16,Agent loop,Loop diagram reflects settings,P2,UI,L,,"1. Toggle strategy, self-check, guardrails, hooks; watch the lifecycle diagram.","Planning node, self-check, guardrail counts and hook counts update.",,,,,
+SUB-01,Sub-agents,Delegation works,P0,Functional,B,,"1. send ""[[subagent:mathwhiz]]"" --stream",'TOOL_RESULT: TOOL_RESULT: 256'. Activity shows nested lines prefixed '  │ ' for the sub-agent's calculator call.,,,,,
+SUB-02,Sub-agents,Sub-agent tool scoping,P0,Security,B,,"1. send ""[[subagent:mathwhiz current_time]]""","Sub-agent gets 'unknown tool ""current_time""'.",,,,,
+SUB-03,Sub-agents,Fresh context,P1,Functional,B,,1. Check the sub-agent's upstream request (inspect mock).,Only its own system prompt and the task; none of the parent conversation.,,,,,
+SUB-04,Sub-agents,Model override,P1,Functional,B,subagents[0].model=mock-sub,1. SUB-01 then inspect stats.,Sub-agent calls use mock-sub; parent uses mock-primary.,,,,,
+SUB-05,Sub-agents,Sub-agent maxSteps and default,P1,Functional,B,maxSteps=1; then 0,1. Delegate a task needing 2 steps.,1 → step-limit summary inside the sub-agent. 0 → default 6 steps.,,,,,
+SUB-06,Sub-agents,Nesting limit,P2,Negative,B,"Sub-agent A may call agent_B, B may call agent_A.",1. Trigger recursive delegation.,At depth 3: 'sub-agent nesting limit reached'.,,,,,
+SUB-07,Sub-agents,Usage includes sub-agent calls,P1,Functional,B,,1. SUB-01 non-stream.,usage.total_tokens counts parent and sub-agent calls (18 per mock call).,,,,,
+SUB-08,Sub-agents,Validation,P1,Validation,L,,1. Sub-agent with invalid name; empty system prompt.,"Errors `subagents[0].name: invalid`, `subagents[0].systemPrompt: required`.",,,,,
+SUB-09,Sub-agents,Sub-agent permissions still apply,P1,Security,B,permissions.toolPolicies={calculator: deny},1. SUB-01.,Sub-agent's calculator call is denied by policy.,,,,,
+PERM-01,Permissions and sandbox,Default allow,P0,Functional,B,run qa-base permissions.defaultPolicy=allow,1. Call calculator.,Runs.,,,,,
+PERM-02,Permissions and sandbox,Default deny,P0,Security,B,permissions.defaultPolicy=deny,1. Call calculator.,'permission denied for calculator: denied by policy'; trace event tool/denied.,,,,,
+PERM-03,Permissions and sandbox,Per-tool override beats default,P0,Security,B,"defaultPolicy=deny, toolPolicies={calculator: allow}",1. Call calculator and current_time.,calculator runs; current_time denied.,,,,,
+PERM-04,Permissions and sandbox,Webhook approval allow / deny with reason,P0,Security,B,"toolPolicies={calculator: webhook}, approvalWebhook=http://127.0.0.1:18099/approve?allow=true","1. Call calculator.
+2. Change to ?allow=false&reason=QA+says+no and repeat.
+3. inspect webhook","Allowed, then 'permission denied for calculator: QA says no'. Webhook payload has tool, arguments, sessionId, traceId.",,,,,
+PERM-05,Permissions and sandbox,Webhook approval fails closed,P0,Security,B,As PERM-04,1. URL with ?status=500; with ?invalid=1; with an unreachable host.,All denied ('approval webhook returned an invalid response' / 'unreachable').,,,,,
+PERM-06,Permissions and sandbox,Webhook policy requires URL,P1,Validation,L,,1. Set a tool to webhook with no approval URL.,`permissions.approvalWebhook: required when a tool uses the webhook policy`.,,,,,
+PERM-07,Permissions and sandbox,Workspace root,P0,Security,B,workspaceRoot=./qa-data/ws2,1. write_file a.txt; shell ls,File lands in qa-data/ws2 (created if missing); shell runs there.,,,,,
+PERM-08,Permissions and sandbox,Permission table in UI lists every tool,P2,UI,L,qa-kitchen-sink imported,1. Open Permissions.,Built-ins and HTTP tools listed with allow/deny/webhook selects; MCP group note shown.,,,,,
+PERM-09,Permissions and sandbox,Default preset policies,P2,Functional,L,Start from defaults,1. Open Permissions.,shell and write_file default to deny.,,,,,
+GRD-01,Guardrails,Input keyword block,P0,Security,B,run qa-kitchen-sink (keyword 'swordfish' → block),"1. send ""the password is SwordFish""
+2. inspect mock",Reply 'QA: request blocked.' finish_reason content_filter; NO upstream call; trace guardrail/block stage=input.,,,,,
+GRD-02,Guardrails,Input regex redact,P0,Security,B,"inputRules=[{name: cc, type: regex, pattern: '\\d{4}-\\d{4}', action: redact}]","1. send ""[[echo-messages]] card 1234-5678""
+2. inspect mock (message text)",Upstream user text contains '[REDACTED]' instead of the number.,,,,,
+GRD-03,Guardrails,Input warn,P2,Functional,B,rule action warn,1. Send matching text.,Request proceeds unchanged; trace guardrail/warn.,,,,,
+GRD-04,Guardrails,Output redact,P0,Security,B,qa-kitchen-sink (ID-[0-9]{4} → redact),"1. send ""[[say:your id is ID-1234 ok]]""",'your id is [REDACTED] ok'.,,,,,
+GRD-05,Guardrails,Output block,P0,Security,B,"outputRules=[{name: no-secret, type: keyword, pattern: topsecret, action: block}]","1. send ""[[say:this is TOPSECRET]]""",'QA: request blocked.' with finish_reason content_filter.,,,,,
+GRD-06,Guardrails,PII redaction,P0,Security,B,guardrails.redactPII=true,"1. send ""[[say:mail a@b.com call +1 415 555 0100 card 4111 1111 1111 1111 ssn 123-45-6789]]""
+2. Also send that text as input with [[echo-messages]].","Email, phone, card (Luhn-valid) and SSN all become [REDACTED] in output and in the upstream input, with surrounding spaces intact ('card [REDACTED] ssn [REDACTED]').",,,,,
+GRD-13,Guardrails,PII redaction leaves look-alikes alone,P1,Regression,B,guardrails.redactPII=true,"1. send ""[[say:pi is 3.14159265358979, order 1234567890123, year 2026, card 4111 1111 1111 1112]]""","Unchanged: decimals, plain long numbers, years, and card-like numbers that fail the Luhn check are not redacted.",,,,,
+GRD-07,Guardrails,Max input chars,P1,Functional,B,maxInputChars=10,"1. send ""this is longer than ten""",Blocked (content_filter) without calling the model.,,,,,
+GRD-08,Guardrails,Only the latest user message is checked,P2,Functional,B,keyword block 'swordfish',"1. History with 'swordfish' in an earlier user turn, clean latest message.",Not blocked.,,,,,
+GRD-09,Guardrails,Output rules force buffered streaming,P1,Functional,B,any output rule,"1. send ""[[say:hello world]]"" --stream --raw","Content arrives once, already filtered.",,,,,
+GRD-10,Guardrails,Streaming block message,P1,Functional,B,GRD-01 spec,"1. send ""swordfish"" --stream","Stream contains the blocked message and finish_reason content_filter, then [DONE].",,,,,
+GRD-11,Guardrails,Rule validation,P1,Validation,L,,1. Regex `(`; type 'glob'; action 'drop'.,Errors: bad regex; type must be regex|keyword; action must be block|redact|warn.,,,,,
+GRD-12,Guardrails,Custom blocked message,P2,Functional,B,blockedMessage='Nope.',1. Trigger a block.,'Nope.',,,,,
+HOOK-01,Hooks,Every event fires with a log hook,P0,Functional,B,"One log hook per event: turn_start, pre_step, pre_tool, post_tool, turn_end, on_error.","1. Run a tool-using request, then a failing one ([[status:500]], retries 0).",Agent log has 'hook' lines for all six events with the trace id.,,,,,
+HOOK-02,Hooks,Webhook payload shape,P0,Functional,B,turn_end webhook → http://127.0.0.1:18099/hook,"1. send ""hi"" --session h1
+2. inspect webhook","Payload {event: turn_end, traceId, sessionId: h1, data: {text, finishReason}}.",,,,,
+HOOK-03,Hooks,turn_start block,P0,Functional,B,"turn_start webhook, blocking, …/hook?action=block&message=closed","1. send ""hi""","Reply 'closed', finish_reason content_filter, no model call.",,,,,
+HOOK-04,Hooks,pre_step block,P1,Functional,B,pre_step blocking webhook ?action=block (no message),"1. send ""hi""",Reply 'Stopped by a hook.',,,,,
+HOOK-05,Hooks,pre_tool block,P0,Functional,B,pre_tool blocking webhook ?action=block&message=nope,"1. send '[[tool:calculator {""expression"":""1+1""}]]'",'TOOL_RESULT: Error: blocked by hook: nope'.,,,,,
+HOOK-06,Hooks,turn_start inject is independent of the client policy,P1,Functional,B,turn_start blocking webhook …/hook?inject=INJECTED,"1. send ""[[echo-system]]"" --system CLIENT with clientSystemPolicy append, replace and ignore.","Every time: '## Context from hooks\nINJECTED' present and the base prompt kept (except replace, where CLIENT replaces only the base text).",,,,,
+HOOK-07,Hooks,pre_step inject,P1,Functional,B,pre_step inject hook type=inject content='STEP-NOTE',"1. send ""[[echo-messages]]""",Upstream has an extra system message before the model call.,,,,,
+HOOK-08,Hooks,Non-blocking webhooks don't delay,P1,Performance,B,turn_end webhook ?delay=3000 blocking=false,1. Time a request.,Returns immediately; the webhook still receives the call ~3 s later.,,,,,
+HOOK-09,Hooks,Blocking webhook timeout,P1,Negative,B,pre_tool blocking ?delay=5000 timeoutMs=500,1. Call a tool.,Warning 'hook failed'; tool still runs (fail open for hooks).,,,,,
+HOOK-10,Hooks,Failing webhook ignored,P2,Negative,B,?status=500 and unreachable URL,1. Requests still succeed.,"Warnings logged, requests unaffected.",,,,,
+HOOK-11,Hooks,post_tool payload,P2,Functional,B,post_tool webhook,1. Successful and failing tool calls.,"data.result (≤2000 chars) on success, data.error on failure.",,,,,
+HOOK-12,Hooks,on_error payload,P1,Functional,B,on_error webhook; model retries 0,"1. send ""[[status:500]]""",Webhook receives on_error with data.error.,,,,,
+HOOK-13,Hooks,Validation,P1,Validation,L,,1. Event 'before_reply'; type 'email'; webhook without URL.,Errors listing allowed events/types; url required for webhook.,,,,,
+OBS-01,Observability,Trace file events,P0,Functional,B,observability.traceFile=./qa-data/trace.jsonl,"1. Run plan_execute + tool + self-check request.
+2. inspect trace -n 20","JSONL with turn/start, plan, llm/response (model, ms, usage), tool/result, selfcheck/revise or none, turn/end — all sharing one traceId.",,,,,
+OBS-02,Observability,Trace id header,P1,Functional,B,traceHeader=true then false,"1. send ""hi"" (non-stream and --stream)","X-Harness-Trace-Id present (also on streams, plus harness_trace_id in the final chunk) / absent when off.",,,,,
+OBS-03,Observability,Usage reporting,P0,Functional,B,includeUsage=true,1. Non-stream; stream with stream_options.include_usage; stream without it.,usage object present; usage chunk sent; no usage chunk.,,,,,
+OBS-04,Observability,Usage off,P2,Functional,B,includeUsage=false,1. Non-stream request.,No usage field.,,,,,
+OBS-05,Observability,Log levels,P1,Functional,B,,"1. logLevel=debug, then error.",debug shows per-event lines and MCP stderr; error shows only errors.,,,,,
+OBS-06,Observability,JSON log format,P2,Functional,B,logFormat=json,1. Start and send a request.,Each stderr line is valid JSON.,,,,,
+OBS-07,Observability,Unwritable trace path,P2,Negative,B,traceFile=/root/nope/trace.jsonl,1. Start.,Warning 'cannot open trace file'; agent still runs.,,,,,
+OBS-08,Observability,Validation,P2,Validation,L,,1. logLevel 'verbose'; logFormat 'xml'.,Errors listing allowed values.,,,,,
+PLAY-01,Test playground (builder),Start a test instance,P0,Functional,L,,1. Open Test → Start test instance.,Status 'Test instance running at /preview/<id>/v1'; chat box focused.,,,,,
+PLAY-02,Test playground (builder),Chat with streaming and activity,P0,Functional,L,,"1. Send '[[tool:calculator {""expression"":""2^10""}]]'.",Agent activity panel shows the tool call (activity is always streamed in previews); answer 'TOOL_RESULT: 1024'; trace id shown.,,,,,
+PLAY-03,Test playground (builder),Markdown rendering,P2,UI,L,,1. Send '[[say:**bold** and `code`]]' and a fenced code block.,"Bold, inline code and code blocks render; HTML is escaped.",,,,,
+PLAY-04,Test playground (builder),Stale spec warning,P1,Functional,L,Instance running.,1. Change any field.,'Spec changed since start — restart to apply.'; Restart applies the change.,,,,,
+PLAY-05,Test playground (builder),Reset conversation,P1,Functional,L,,"1. Chat, click Reset conversation.",Messages cleared; a new session id is used.,,,,,
+PLAY-06,Test playground (builder),Server sessions in playground,P1,Functional,L,sessions.mode=server,"1. Two turns, second '[[echo-messages]]'.",History is kept (X-Session-Id sent per conversation).,,,,,
+PLAY-07,Test playground (builder),Invalid spec cannot start,P1,Negative,L,Spec with errors.,1. Start test instance.,'The spec has problems:' with the error list; no instance.,,,,,
+PLAY-08,Test playground (builder),Model error shown in chat,P1,Negative,L,,1. Send '[[status:500]]' with retries 0.,Assistant bubble shows the error text (no empty grey bubble).,,,,,
+PLAY-09,Test playground (builder),Preview eviction (local: 4),P2,Functional,L,,1. Start 5 instances in turn (restart repeatedly).,The oldest is evicted; using its URL → 'Test instance not found or expired. Start a new one.',,,,,
+PLAY-10,Test playground (builder),Builder env vars used locally,P1,Functional,L,Builder started with QA_MODEL_KEY=sk-local.,1. Preview with [[echo-params]].,Mock sees Bearer sk-local… (local mode only).,,,,,
+EXP-01,Build and export,OS cards and processor options,P0,Functional,L,,"1. Click macOS, Ubuntu / Linux, Windows.","macOS: Apple Silicon (M1 and later), Intel. Linux: x86-64, ARM64. Windows: x64, ARM64. Host target marked '(this machine)' locally.",,,,,
+EXP-02,Build and export,Build matrix: all 6 targets,P0,Functional,L,Any valid preset.,"1. Build each OS/processor combination.
+2. Run `file <download>` on each.","Files <name>-darwin-arm64, -darwin-amd64, -linux-amd64, -linux-arm64, -windows-amd64.exe, -windows-arm64.exe; `file` reports Mach-O arm64/x86_64, ELF x86-64/aarch64, PE32+ x86-64/Aarch64. ~7–8 MB each.",,,,,
+EXP-03,Build and export,Build progress and timing,P1,UI,L,,1. Build; watch the button and progress bar.,"Button 'Building…', elapsed seconds counter, progress bar; result line 'Downloaded <file> · <size> · <target>'.",,,,,
+EXP-04,Build and export,Build blocked when spec invalid,P0,Negative,L,Spec with errors.,1. Open Build.,Pre-flight lists problems; Build button disabled.,,,,,
+EXP-05,Build and export,API rejects invalid spec and target,P1,Negative,L,,"1. POST /api/build with name 'bad name!'.
+2. POST /api/build with os=plan9.",400 'spec is invalid: …'; 400 'unsupported target plan9/…'.,,,,,
+EXP-06,Build and export,Docker toggle changes the export,P0,Functional,L,,1. Turn on Include a Dockerfile; build for Windows x64.,Button 'Build Windows (x64) + Docker'; downloads <name>-windows-amd64-docker.zip (application/zip).,,,,,
+EXP-07,Build and export,Docker bundle contents,P0,Functional,L,Zip from EXP-06.,1. unzip and list.,"<name>/: native binary, Dockerfile, docker-compose.yml, .dockerignore, README.md, docker/linux-amd64/agent, docker/linux-arm64/agent; Linux binaries executable after unzip on macOS/Linux.",,,,,
+EXP-08,Build and export,Distroless Dockerfile for tool-free agents,P1,Functional,L,Minimal preset + Docker.,1. Read the Dockerfile.,"busybox stage + gcr.io/distroless/static-debian12:nonroot, COPY --chmod docker/linux-${TARGETARCH}/agent, WORKDIR/VOLUME /data, ENV PORT, EXPOSE, HEALTHCHECK --healthcheck, ENTRYPOINT --host 0.0.0.0.",,,,,
+EXP-09,Build and export,Debian Dockerfile when the agent runs programs,P1,Functional,L,Coding preset + Docker; add 'terraform' to the shell allow-list.,1. Read the Dockerfile.,"debian:bookworm-slim installing ca-certificates tzdata git golang-go npm python3 python3-pytest; '# TODO: install ""terraform""'; non-root user.",,,,,
+EXP-10,Build and export,Docker image builds and runs (amd64 host),P0,Functional,D,Docker 23+ on Ubuntu x86-64; any bundle.,"1. `docker compose up --build` in the unzipped folder with the key env var exported.
+2. `curl localhost:<port>/v1/models`
+3. `docker ps` health column.",Image builds using docker/linux-amd64; container healthy; API answers; data volume created.,,,,,
+EXP-11,Build and export,Docker image on Apple Silicon (arm64),P0,Compatibility,D,Docker Desktop on an M-series Mac.,1. As EXP-10.,Builds using docker/linux-arm64 (no emulation warning); works.,,,,,
+EXP-12,Build and export,Docker on Windows,P1,Compatibility,D,Docker Desktop on Windows; PowerShell.,"1. Expand-Archive, set $env:KEY, docker compose up --build.",Works; --chmod sets the executable bit even though Windows lost it.,,,,,
+EXP-13,Build and export,Secrets not baked into the image,P0,Security,D,Image from EXP-10.,1. `docker history --no-trunc <image>` and `docker inspect`.,No API key values present; only env var names.,,,,,
+EXP-14,Build and export,Data persists across container restarts,P1,Functional,D,Support preset (memory + server sessions) in Docker.,"1. Save a memory, `docker compose down && up`, ask again.",Memory and sessions still there (named volume).,,,,,
+EXP-15,Build and export,Workspace mount hint,P2,Functional,L,Coding preset bundle.,1. Read docker-compose.yml.,Commented '# - ./my-project:/data/workspace' line present; absent for tool-free agents.,,,,,
+EXP-16,Build and export,How-to-run matches the download,P1,Functional,L,,"1. For each OS, read the 'How to run' panel.",Uses the real filename (<name>-<os>-<arch>[.exe]); macOS shows xattr tip; Windows shows Unblock-File and PowerShell env syntax; env vars listed; Docker section only when the toggle is on.,,,,,
+EXP-17,Build and export,Copy buttons on code blocks,P2,UI,L,,1. Click Copy on each block.,Clipboard holds the exact command.,,,,,
+EXP-18,Build and export,Target and Docker choice remembered,P2,Functional,L,,"1. Pick Linux ARM64 + Docker, reload.",Same selection restored.,,,,,
+EXP-19,Build and export,Default target in public mode follows the visitor,P1,Functional,P,Public builder on Linux; visit from a Mac/Windows browser.,1. Open Build.,Default OS matches the visitor's OS (not the server's); no '(this machine)' labels.,,,,,
+EXP-20,Build and export,Uppercase names in Docker,P2,Functional,L,Agent name 'My-Agent' + Docker.,1. Read Dockerfile/compose.,Image and service names lowercased (my-agent).,,,,,
+BIN-01,Agent binary: CLI and platforms,Runs on macOS Apple Silicon,P0,Compatibility,B,Downloaded darwin-arm64 binary.,1. chmod +x; xattr -d com.apple.quarantine (if blocked); run; curl /v1/models.,"Starts, logs 'harness listening', API works.",,,,,
+BIN-02,Agent binary: CLI and platforms,Runs on macOS Intel,P1,Compatibility,B,darwin-amd64 on an Intel Mac (or Rosetta).,1. As BIN-01.,Works.,,,,,
+BIN-03,Agent binary: CLI and platforms,Runs on Ubuntu x86-64,P0,Compatibility,B,Ubuntu 22.04/24.04.,1. chmod +x; run; curl.,Works with no extra packages (static binary).,,,,,
+BIN-04,Agent binary: CLI and platforms,Runs on Linux ARM64,P1,Compatibility,B,Graviton / Raspberry Pi 64-bit.,1. As BIN-03.,Works.,,,,,
+BIN-05,Agent binary: CLI and platforms,Runs on Windows x64,P0,Compatibility,B,Windows 10/11 PowerShell.,1. Unblock-File; $env:KEY=…; .\<name>.exe; curl.exe …,Works; firewall prompt may appear for 0.0.0.0.,,,,,
+BIN-06,Agent binary: CLI and platforms,Runs on Windows ARM64,P2,Compatibility,B,Snapdragon laptop.,1. As BIN-05.,Works.,,,,,
+BIN-07,Agent binary: CLI and platforms,--version / --check / --print-spec,P1,Functional,B,,1. Run each flag.,'openharness runtime 1'; 'spec OK: <name>'; pretty JSON of the embedded spec with key env var names only.,,,,,
+BIN-08,Agent binary: CLI and platforms,"--port, --host and PORT env",P1,Functional,B,,"1. --port 9001
+2. PORT=9002 (no flag)
+3. --port 9003 with PORT=9002
+4. --host 0.0.0.0","Listens on 9001, 9002, 9003 (flag wins), all interfaces.",,,,,
+BIN-09,Agent binary: CLI and platforms,--spec override,P1,Functional,B,,1. Run a built binary with --spec qa/fixtures/specs/qa-base.json.,Serves qa-agent instead of the embedded spec.,,,,,
+BIN-10,Agent binary: CLI and platforms,Invalid --spec,P2,Negative,B,,1. --spec missing.json; --spec file with invalid JSON; spec with errors.,Clear error and exit 1; spec errors printed one per line ('spec error: …').,,,,,
+BIN-11,Agent binary: CLI and platforms,--healthcheck,P1,Functional,B,,"1. With the agent running: `agent --healthcheck --port <p>`.
+2. With nothing running.",Exit 0 / exit 1 with 'unhealthy: …'.,,,,,
+BIN-12,Agent binary: CLI and platforms,Graceful shutdown,P1,Resilience,B,Agent mid-stream on a slow request.,1. Ctrl-C / SIGTERM.,Exits within ~10 s; MCP children stopped; no corrupted session/memory files.,,,,,
+BIN-13,Agent binary: CLI and platforms,Port already in use,P2,Negative,B,,1. Start two agents on the same port.,Second exits with 'address already in use'.,,,,,
+BIN-14,Agent binary: CLI and platforms,Binary without a spec,P2,Negative,B,`go run ./cmd/harness` (no embedded spec).,1. Run with no flags.,'no spec embedded in this binary; pass --spec harness.json'.,,,,,
+API-01,OpenAI API compatibility,OpenAI Python SDK (non-stream + stream),P0,Compatibility,B,pip install openai; run qa-base,"1. client = OpenAI(base_url='http://127.0.0.1:8090/v1', api_key='x'); chat.completions.create(…)
+2. Same with stream=True.",Both work; streamed deltas concatenate to the answer.,,,,,
+API-02,OpenAI API compatibility,OpenAI Node SDK,P1,Compatibility,B,npm i openai,1. Non-stream and stream calls.,Both work.,,,,,
+API-03,OpenAI API compatibility,LangChain ChatOpenAI with tools,P1,Compatibility,B,langchain-openai,1. bind_tools([get_weather]) and invoke a prompt that triggers it ([[tool:get_weather …]]).,AIMessage.tool_calls populated (client tool passthrough).,,,,,
+API-04,OpenAI API compatibility,SSE format,P0,Compatibility,B,,1. send … --stream --raw,"First chunk delta {role: assistant, content: ''}; chunks have id/object chat.completion.chunk/created/model; final chunk finish_reason; optional usage chunk with empty choices; ends 'data: [DONE]'.",,,,,
+API-05,OpenAI API compatibility,Streamed client tool_calls format,P1,Compatibility,B,TLP-05 with --stream --raw,1. Inspect chunks.,"tool_calls delta with index, id, type function, name, arguments; finish_reason tool_calls.",,,,,
+API-06,OpenAI API compatibility,Multimodal content arrays,P1,Compatibility,B,,"1. Send content: [{type: text, text: '[[echo-messages]]'}, {type: image_url, image_url: {url: 'data:image/png;base64,…'}}].",Accepted; parts forwarded upstream for OpenAI-compatible providers.,,,,,
+API-07,OpenAI API compatibility,Request validation,P1,Negative,B,,"1. Body `{bad`
+2. messages: []
+3. Body > 32 MB","400 with OpenAI-style error {error: {message, type: invalid_request_error}}.",,,,,
+API-08,OpenAI API compatibility,Upstream error mapping,P1,Negative,B,retries 0,"1. send ""[[status:500]]"" non-stream and --stream.",Non-stream: 502 server_error. Stream: an error chunk then [DONE].,,,,,
+API-09,OpenAI API compatibility,Keep-alive on long turns,P2,Resilience,B,,"1. send ""[[slow:20]] hi"" --stream --raw",': keep-alive' comment lines every ~15 s; connection stays open.,,,,,
+API-10,OpenAI API compatibility,Client disconnect cancels work,P2,Resilience,B,,1. Start a [[slow:20]] stream and kill the client after 2 s.,Agent logs the cancelled turn; no goroutine/process leak (memory stable).,,,,,
+API-11,OpenAI API compatibility,Concurrent requests,P1,Performance,B,,1. 20 parallel requests with tools.,"All succeed with correct, non-mixed answers; trace ids distinct.",,,,,
+API-12,OpenAI API compatibility,Unknown endpoints,P2,Negative,B,,1. GET /v1/chat/completions; POST /v1/embeddings.,"405 / 404, no crash.",,,,,
+PUB-01,Public mode security,Catalog reports public mode,P0,Functional,P,,1. GET /api/catalog.,"""public"": true.",,,,,
+PUB-02,Public mode security,Test step asks for the visitor's key,P0,Security,P,,1. Open Test.,"Shared-server notice and a password field 'Your model API key for this test'; key is not saved to localStorage, the spec, or exports.",,,,,
+PUB-03,Public mode security,Server env vars are never read,P0,Security,P,Builder started with SECRET_X=leakme.,"1. Preview a spec with model.apiKeyEnv=SECRET_X and an HTTP tool header 'X: ${SECRET_X}' pointing at a public request bin.
+2. Chat to trigger both.",Neither the model call nor the tool call carries 'leakme' (empty values).,,,,,
+PUB-04,Public mode security,Visitor key is used,P0,Functional,P,Real provider key (LIVE env).,"1. Enter key, start preview, chat.",Model answers; the key is used for the primary and fallbacks without inline keys.,,,,,
+PUB-05,Public mode security,Shell and stdio MCP removed with notes,P0,Security,P,Coding preset + a stdio MCP server.,1. Start preview.,Notes: 'Removed the shell tool…' and 'Skipped stdio MCP server …'. Tool list excludes them.,,,,,
+PUB-06,Public mode security,SSRF: private networks blocked,P0,Security,P,Spec with http_fetch allowed and the mock as base URL.,"1. Use model base URL http://127.0.0.1:18098/v1.
+2. http_fetch http://169.254.169.254/latest/meta-data/, http://10.0.0.1/, http://[::1]/, http://localhost/.
+3. A public hostname whose DNS resolves to 127.0.0.1 (e.g. localtest.me).",All refused with 'destination address is not allowed' — including the DNS-rebinding style hostname. Public hosts work.,,,,,
+PUB-07,Public mode security,Hooks / approvals / HTTP MCP can't reach private IPs,P0,Security,P,,"1. Point a hook, an approval webhook and an http MCP server at 127.0.0.1.","All blocked (approval → denied, fail closed).",,,,,
+PUB-08,Public mode security,Paths sandboxed per preview,P0,Security,P,"Spec with memory.path=/etc/passwd, sessions.dir=/, traceFile=/tmp/x, workspaceRoot=/.",1. Start preview; use memory and file tools.,Everything lands in the preview's temp dir; no files outside it are created or read.,,,,,
+PUB-09,Public mode security,Temp dirs removed,P1,Security,P,,1. Start 3 previews from one IP; check $TMPDIR/oh-preview-*.,At most 2 dirs per visitor remain; evicted/expired previews delete theirs.,,,,,
+PUB-10,Public mode security,Preview auth forced off,P2,Functional,P,Spec with authMode=bearer.,1. Chat in preview.,Works without a key (preview URL is unguessable).,,,,,
+PUB-11,Public mode security,Rate limit: test instances,P0,Security,P,,1. 31 POST /api/preview from one IP within an hour.,"30 succeed, the 31st → 429 with Retry-After.",,,,,
+PUB-12,Public mode security,Rate limit: builds,P0,Security,P,,1. 21 builds from one IP.,21st → 429 'Too many builds. Try again in Ns.',,,,,
+PUB-13,Public mode security,Rate limit: messages,P1,Security,P,,1. Send >30 chat messages quickly to a preview.,"After the burst (30), 429 in OpenAI error shape; refills ~1 per 30 s.",,,,,
+PUB-14,Public mode security,Limits are per visitor,P1,Security,P,Two client IPs.,1. Exhaust limits from IP A; use IP B.,B unaffected.,,,,,
+PUB-15,Public mode security,X-Forwarded-For trust,P0,Security,P,,"1. With --trust-proxy off: send 31 previews with rotating X-Forwarded-For.
+2. Behind the Coolify proxy: confirm limits apply per real client.","Without trust, spoofed headers are ignored (still limited). Behind the proxy, the last hop (added by the proxy) is used.",,,,,
+PUB-16,Public mode security,Preview per-IP cap and global cap,P1,Functional,P,,1. Start 3 previews from one IP.,The first is evicted (404 'Test instance not found or expired…').,,,,,
+PUB-17,Public mode security,Idle previews expire,P2,Functional,P,,"1. Start a preview, wait 31 min idle.",Closed and its temp dir removed.,,,,,
+PUB-18,Public mode security,Security headers,P1,Security,P,,"1. curl -I /, /api/catalog.","X-Content-Type-Options nosniff, X-Frame-Options DENY, Referrer-Policy no-referrer.",,,,,
+PUB-19,Public mode security,Downloaded binaries are not sandboxed,P1,Functional,P,Coding preset.,1. Build in public mode; run locally.,"shell, stdio MCP and env vars work in the binary (sandbox applies to previews only).",,,,,
+PUB-20,Public mode security,Large / malformed payloads,P1,Security,P,,1. POST /api/build with 9 MB body; with invalid JSON.,Rejected with 400; server stays healthy.,,,,,
+DEP-01,Deployment (Coolify) and operations,Compose deploy succeeds,P0,Functional,D,"Coolify, Docker Compose build pack, 2 vCPU / 4 GB + 4 GB swap.","1. Deploy.
+2. Watch logs.",go test -short passes; six 'warmed …' lines; container healthy.,,,,,
+DEP-02,Deployment (Coolify) and operations,HTTPS and domain,P0,Functional,D,,"1. curl https://<domain>/healthz
+2. curl -I http://<domain>/","{""status"":""ok""}; valid certificate; HTTP redirects to HTTPS.",,,,,
+DEP-03,Deployment (Coolify) and operations,Port not published on host,P0,Security,D,,"1. From outside: curl http://<server-ip>:7070/healthz
+2. `docker ps` port column.",Connection refused/timeout; only 7070/tcp exposed (no 0.0.0.0 mapping).,,,,,
+DEP-04,Deployment (Coolify) and operations,Resource limits applied,P1,Functional,D,,1. `docker inspect` → HostConfig.NanoCpus / Memory.,"1.5 CPUs, 2560 MiB.",,,,,
+DEP-05,Deployment (Coolify) and operations,Build concurrency 1,P1,Functional,D,,1. Start two builds at once from two browsers.,Second waits for the first; both complete.,,,,,
+DEP-06,Deployment (Coolify) and operations,Warm cache persists in volume,P1,Performance,D,,1. Redeploy; time the first build after it.,"~1–3 s (cache on /data volume), not ~6 s+.",,,,,
+DEP-07,Deployment (Coolify) and operations,Public mode on by default,P0,Security,D,,1. GET /api/catalog; open Test.,public: true; key field shown; shell removed in previews.,,,,,
+DEP-08,Deployment (Coolify) and operations,Client IP behind proxy,P1,Security,D,,1. Hit a rate limit from your IP; another network still works.,"Limits are per real visitor IP, not per proxy IP.",,,,,
+DEP-09,Deployment (Coolify) and operations,Redeploy on push (if webhook configured),P2,Functional,D,,1. Push a trivial commit.,Coolify redeploys automatically; site stays healthy.,,,,,
+DEP-10,Deployment (Coolify) and operations,Container restart recovers,P1,Resilience,D,,1. Restart the container from Coolify.,Healthy again in < 30 s; previews from before are gone (in-memory) and the UI handles it.,,,,,
+DEP-11,Deployment (Coolify) and operations,Memory headroom during builds,P1,Performance,D,,1. Run 10 builds back to back while watching `free -h` / Coolify metrics.,No OOM kills; swap use stays modest; Coolify UI responsive.,,,,,
+DEP-12,Deployment (Coolify) and operations,Logs readable in Coolify,P2,Functional,D,,1. Open the resource logs.,Startup line 'OpenHarness builder running … mode=public'; build/preview lines with agent names.,,,,,
+PERF-01,Performance and resilience,Warm build time,P1,Performance,L,Cache warm (`go run ./cmd/openharness --warm` once).,1. Build 5 times for the host target.,Each ≤ 3 s locally (X-Build-Ms header).,,,,,
+PERF-02,Performance and resilience,Cold build time,P2,Performance,L,Fresh cache dir.,1. First build.,Completes (≈5–40 s depending on CPU).,,,,,
+PERF-03,Performance and resilience,Docker bundle build time,P2,Performance,L,Warm cache.,1. Build with Docker on.,≈3 builds' worth (few seconds warm).,,,,,
+PERF-04,Performance and resilience,Agent latency overhead,P1,Performance,B,run qa-base,1. 100 sequential 'hi' requests; compare with direct mock latency.,Harness overhead ≤ ~5 ms median.,,,,,
+PERF-05,Performance and resilience,Agent under load,P1,Performance,B,,1. 50 concurrent streams for 1 min (tool-using).,No errors; memory stable; p95 latency reasonable.,,,,,
+PERF-06,Performance and resilience,Builder under load,P2,Performance,L,,1. 20 parallel /api/validate and 10 previews.,All succeed; UI responsive.,,,,,
+PERF-07,Performance and resilience,Large spec,P2,Performance,L,"Spec with 50 skills, 30 HTTP tools, 20 hooks.","1. Edit, validate, preview, build.",UI stays responsive; build succeeds (spec embedded via ldflags).,,,,,
+PERF-08,Performance and resilience,Long conversation,P2,Performance,B,"Server sessions, sliding window.",1. 500-turn scripted conversation.,Steady latency; session file grows linearly; compaction keeps upstream size bounded.,,,,,
+LIVE-01,Live provider smoke tests,DeepSeek,P0,Compatibility,B,DEEPSEEK_API_KEY; Research preset.,1. Ask a question needing http_fetch and calculator.,"Plan shown, tools called, sensible cited answer, self-check line.",,,,,
+LIVE-02,Live provider smoke tests,OpenAI,P0,Compatibility,B,OPENAI_API_KEY; OpenAI quick-fill.,1. Tool-using question; streaming.,Works; usage reported.,,,,,
+LIVE-03,Live provider smoke tests,Anthropic,P0,Compatibility,B,ANTHROPIC_API_KEY; Anthropic quick-fill.,1. Tool-using question; streaming; image input.,Works with tool use and streaming.,,,,,
+LIVE-04,Live provider smoke tests,"Ollama (local, keyless)",P1,Compatibility,B,Ollama running llama3.1.,1. Basic chat and a calculator call.,Works without an API key.,,,,,
+LIVE-05,Live provider smoke tests,OpenRouter,P2,Compatibility,B,OPENROUTER key.,1. Basic chat.,Works.,,,,,
+LIVE-06,Live provider smoke tests,Fallback to a real provider,P1,Compatibility,B,"Primary with a bad key, fallback with a good one.",1. Chat.,Fallback answers after the primary's 401.,,,,,
+LIVE-07,Live provider smoke tests,Real MCP server,P1,Compatibility,B,e.g. @modelcontextprotocol/server-filesystem via npx (stdio).,1. List and call its tools.,Tools appear as mcp_<server>_<tool> and work.,,,,,
+LIVE-08,Live provider smoke tests,Each preset end to end on the public site,P0,Functional,D,Your key.,"1. For each preset: test chat, build for your OS, run the binary, call it with the OpenAI SDK.",All four work end to end.,,,,,

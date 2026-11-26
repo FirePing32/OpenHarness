@@ -27,11 +27,70 @@ type Guard struct {
 	output []compiledRule
 }
 
-var piiPatterns = []*regexp.Regexp{
-	regexp.MustCompile(`[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}`),               // email
-	regexp.MustCompile(`\b(?:\d[ -]?){13,16}\b`),                                       // card-like numbers
-	regexp.MustCompile(`\b\d{3}-\d{2}-\d{4}\b`),                                        // US SSN
-	regexp.MustCompile(`\+?\d{1,3}[\s.-]?\(?\d{2,4}\)?[\s.-]?\d{3,4}[\s.-]?\d{3,4}\b`), // phone
+// piiPattern is a detector plus an optional validator that rejects look-alikes.
+type piiPattern struct {
+	re    *regexp.Regexp
+	valid func(match string) bool
+}
+
+var piiPatterns = []piiPattern{
+	{re: regexp.MustCompile(`[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}`)}, // email
+	// Card numbers: 13-16 digits with optional space/dash groups, ending on a
+	// digit (so the following space survives), confirmed by the Luhn checksum.
+	{re: regexp.MustCompile(`\b(?:\d[ -]?){12,15}\d\b`), valid: luhnValid},
+	{re: regexp.MustCompile(`\b\d{3}-\d{2}-\d{4}\b`)}, // US SSN
+	// Phone numbers need a leading + or real separators, so plain long numbers
+	// (order ids, timestamps) are left alone.
+	{re: regexp.MustCompile(`\+\d{1,3}(?:[\s.-]?\(?\d{1,4}\)?){2,4}\b`)},
+	{re: regexp.MustCompile(`(?:\(\d{3}\)\s?|\b\d{3}[\s.-])\d{3}[\s.-]\d{4}\b`)},
+}
+
+// luhnValid reports whether the digits in s pass the Luhn checksum.
+func luhnValid(s string) bool {
+	sum, n, double := 0, 0, false
+	for i := len(s) - 1; i >= 0; i-- {
+		c := s[i]
+		if c < '0' || c > '9' {
+			continue
+		}
+		d := int(c - '0')
+		if double {
+			if d *= 2; d > 9 {
+				d -= 9
+			}
+		}
+		sum += d
+		double = !double
+		n++
+	}
+	return n >= 13 && sum%10 == 0
+}
+
+// redactPII replaces detected PII with [REDACTED], skipping matches that are
+// the fractional part of a decimal number (e.g. 3.14159265358979).
+func redactPII(s string) string {
+	for _, p := range piiPatterns {
+		idx := p.re.FindAllStringIndex(s, -1)
+		if len(idx) == 0 {
+			continue
+		}
+		var b strings.Builder
+		last := 0
+		for _, m := range idx {
+			if m[0] >= 2 && (s[m[0]-1] == '.' || s[m[0]-1] == ',') && s[m[0]-2] >= '0' && s[m[0]-2] <= '9' {
+				continue
+			}
+			if p.valid != nil && !p.valid(s[m[0]:m[1]]) {
+				continue
+			}
+			b.WriteString(s[last:m[0]])
+			b.WriteString("[REDACTED]")
+			last = m[1]
+		}
+		b.WriteString(s[last:])
+		s = b.String()
+	}
+	return s
 }
 
 func compileRules(rules []spec.GuardRule) []compiledRule {
@@ -79,9 +138,7 @@ func (g *Guard) apply(text string, rules []compiledRule) GuardResult {
 		}
 	}
 	if g.cfg.RedactPII {
-		for _, re := range piiPatterns {
-			res.Text = re.ReplaceAllString(res.Text, "[REDACTED]")
-		}
+		res.Text = redactPII(res.Text)
 	}
 	return res
 }

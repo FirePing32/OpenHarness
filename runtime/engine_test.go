@@ -291,3 +291,45 @@ func TestPlanExecuteKeepsUserLast(t *testing.T) {
 		t.Fatalf("plan placement wrong: %v / %v", prev, last)
 	}
 }
+
+func TestServerSessionsRepeatedMessage(t *testing.T) {
+	h, mock := testServer(t, func(s *spec.Spec) { s.Sessions.Mode = "server" })
+	hdr := map[string]string{"X-Session-Id": "rep"}
+	post(t, h.URL, `{"messages":[{"role":"user","content":"continue"}]}`, hdr).Body.Close()
+	post(t, h.URL, `{"messages":[{"role":"user","content":"continue"}]}`, hdr).Body.Close()
+	msgs := mock.reqs[1]["messages"].([]any)
+	last := msgs[len(msgs)-1].(map[string]any)
+	if last["role"] != "user" || len(msgs) != 4 { // system, user, assistant, user
+		t.Fatalf("repeated message dropped: %d messages, last=%v", len(msgs), last)
+	}
+}
+
+func TestTurnStartInjectIgnoresClientPolicy(t *testing.T) {
+	h, mock := testServer(t, func(s *spec.Spec) {
+		s.Prompt.ClientSystemPolicy = "ignore"
+		s.Hooks = []spec.HookSpec{{Event: "turn_start", Type: "inject", Content: "HOOK-CONTEXT"}}
+	})
+	post(t, h.URL, `{"messages":[{"role":"system","content":"CLIENT"},{"role":"user","content":"hi"}]}`, nil).Body.Close()
+	sys := mock.reqs[0]["messages"].([]any)[0].(map[string]any)["content"].(string)
+	if !strings.Contains(sys, "## Context from hooks\nHOOK-CONTEXT") || strings.Contains(sys, "CLIENT") || !strings.Contains(sys, "helpful") {
+		t.Fatalf("system prompt:\n%s", sys)
+	}
+}
+
+func TestRedactPII(t *testing.T) {
+	cases := map[string]string{
+		"mail a.b+x@ex-ample.co.uk now":            "mail [REDACTED] now",
+		"card 4111 1111 1111 1111 ssn 123-45-6789": "card [REDACTED] ssn [REDACTED]",
+		"card 5555-5555-5555-4444.":                "card [REDACTED].",
+		"call +1 415 555 0100 or (415) 555-0100":   "call [REDACTED] or [REDACTED]",
+		"office 415-555-0100, uk +44 20 7946 0958": "office [REDACTED], uk [REDACTED]",
+		"pi is 3.14159265358979":                   "pi is 3.14159265358979",
+		"order 1234567890123 shipped":              "order 1234567890123 shipped",
+		"year 2026 and 1500 units":                 "year 2026 and 1500 units",
+	}
+	for in, want := range cases {
+		if got := redactPII(in); got != want {
+			t.Errorf("redactPII(%q) = %q, want %q", in, got, want)
+		}
+	}
+}

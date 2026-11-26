@@ -529,6 +529,7 @@ func (r *Router) Chat(ctx context.Context, req ChatRequest, onDelta func(string)
 			}
 			resp, err := route.provider.Chat(ctx, req, onDelta)
 			if err == nil {
+				resp.Model = route.model
 				return resp, nil
 			}
 			lastErr = err

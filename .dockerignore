@@ -4,3 +4,5 @@
 harness-data
 workspace
 *.test
+qa
+qa-data

@@ -369,6 +369,7 @@ func (e *Engine) RunTurn(ctx context.Context, in TurnInput, em Emitter) (*TurnOu
 	// Split client system messages from the conversation.
 	var clientSystem []string
 	var conv []Message
+	var hookContext string // turn_start hook injections: server config, independent of the client policy
 	for _, m := range in.Messages {
 		if m.Role == "system" || m.Role == "developer" {
 			clientSystem = append(clientSystem, m.Text)
@@ -392,8 +393,8 @@ func (e *Engine) RunTurn(ctx context.Context, in TurnInput, em Emitter) (*TurnOu
 		out.Text, out.FinishReason = orDefault(hr.Message, e.spec.Guardrails.BlockedMessage), "content_filter"
 		em.Content(out.Text)
 		return finish()
-	} else if hr.Inject != "" {
-		clientSystem = append(clientSystem, hr.Inject)
+	} else {
+		hookContext = hr.Inject
 	}
 
 	// Input guardrails.
@@ -424,7 +425,7 @@ func (e *Engine) RunTurn(ctx context.Context, in TurnInput, em Emitter) (*TurnOu
 		full = append(append([]Message{}, history...), newMsgs...)
 	}
 
-	msgs := append([]Message{{Role: "system", Text: e.systemPrompt(clientSystem, ts)}}, full...)
+	msgs := append([]Message{{Role: "system", Text: e.systemPrompt(clientSystem, hookContext, ts)}}, full...)
 
 	// Tools for this turn: internal registry plus client passthrough tools.
 	var tools []ToolDef
@@ -549,6 +550,20 @@ func newMessages(history, conv []Message) []Message {
 	if len(hu) == 0 {
 		return conv
 	}
+	// A lone user message is always new: "latest message only" clients may
+	// legitimately repeat an earlier message (e.g. "continue" twice).
+	users, assistants := 0, 0
+	for _, m := range conv {
+		switch m.Role {
+		case "user":
+			users++
+		case "assistant":
+			assistants++
+		}
+	}
+	if users <= 1 && assistants == 0 {
+		return conv
+	}
 	seen := 0
 	for i, m := range conv {
 		if m.Role != "user" {
@@ -586,7 +601,7 @@ func (e *Engine) params(in TurnInput) ChatParams {
 	return p
 }
 
-func (e *Engine) systemPrompt(clientSystem []string, ts *turnState) string {
+func (e *Engine) systemPrompt(clientSystem []string, hookContext string, ts *turnState) string {
 	s := e.spec
 	var b strings.Builder
 	section := func(title, body string) {
@@ -649,6 +664,7 @@ func (e *Engine) systemPrompt(clientSystem []string, ts *turnState) string {
 			section("", "Use memory_save to remember durable facts and preferences the user shares, and memory_search to recall them.")
 		}
 	}
+	section("Context from hooks", hookContext)
 	if s.Prompt.ClientSystemPolicy == "append" && len(clientSystem) > 0 {
 		section("Additional instructions from the caller", strings.Join(clientSystem, "\n\n"))
 	}
@@ -704,7 +720,7 @@ func (e *Engine) chat(ctx context.Context, r *Router, req ChatRequest, onDelta f
 	}
 	ts.addUsage(resp.Usage)
 	e.log.Event(ts.TraceID, "llm/response", map[string]any{
-		"model": req.Model, "ms": time.Since(start).Milliseconds(), "toolCalls": len(resp.Message.ToolCalls),
+		"model": resp.Model, "ms": time.Since(start).Milliseconds(), "toolCalls": len(resp.Message.ToolCalls),
 		"finish": resp.FinishReason, "usage": resp.Usage, "depth": ts.Depth,
 	})
 	return resp, nil

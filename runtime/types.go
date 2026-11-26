@@ -147,6 +147,7 @@ type ChatRequest struct {
 
 // ChatResponse is the assembled result of one model call.
 type ChatResponse struct {
+	Model        string // the model that answered (after routing/fallback)
 	Message      Message
 	FinishReason string
 	Usage        Usage

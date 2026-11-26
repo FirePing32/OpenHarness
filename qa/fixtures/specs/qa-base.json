@@ -1,0 +1,128 @@
+{
+  "version": "1",
+  "name": "qa-agent",
+  "description": "QA baseline: mock LLM, safe tools, everything else at defaults.",
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8090,
+    "modelId": "qa-agent",
+    "authMode": "none",
+    "apiKeyEnv": "QA_HARNESS_KEYS",
+    "corsOrigins": [],
+    "streamToolEvents": true,
+    "requestTimeoutSec": 120
+  },
+  "model": {
+    "provider": "openai",
+    "baseUrl": "http://127.0.0.1:18098/v1",
+    "model": "mock-primary",
+    "apiKeyEnv": "QA_MODEL_KEY",
+    "temperature": 0.3,
+    "maxTokens": 1024,
+    "timeoutSec": 30,
+    "retries": 2,
+    "fallbacks": [],
+    "clientParamPolicy": "respect"
+  },
+  "prompt": {
+    "system": "You are the QA agent.",
+    "sections": [],
+    "includeDateTime": true,
+    "includeToolSummary": false,
+    "clientSystemPolicy": "append"
+  },
+  "tools": {
+    "builtins": [
+      "current_time",
+      "calculator",
+      "todo"
+    ],
+    "httpTools": [],
+    "mcpServers": [],
+    "parallel": true,
+    "maxParallel": 4,
+    "resultMaxChars": 16000,
+    "resultTruncation": "head_tail",
+    "timeoutSec": 30,
+    "clientToolsPolicy": "passthrough",
+    "shell": {
+      "allowedCommands": [
+        "ls",
+        "echo",
+        "cat"
+      ],
+      "timeoutSec": 10
+    },
+    "fetch": {
+      "allowedDomains": [],
+      "maxBytes": 200000
+    },
+    "files": {
+      "readOnly": true
+    }
+  },
+  "skills": {
+    "mode": "progressive",
+    "items": []
+  },
+  "memory": {
+    "staticNotes": "",
+    "persistent": false,
+    "path": "./qa-data/memory.json",
+    "scope": "per_user",
+    "autoInject": 5,
+    "enableTools": true
+  },
+  "sessions": {
+    "mode": "stateless",
+    "dir": "./qa-data/sessions",
+    "headerName": "X-Session-Id",
+    "maxMessages": 200
+  },
+  "context": {
+    "maxContextTokens": 64000,
+    "strategy": "sliding_window",
+    "triggerRatio": 0.8,
+    "keepRecentMessages": 12,
+    "summaryPrompt": "Summarize the conversation so far for your own future reference. Keep facts, decisions, open tasks, file paths and tool results that still matter. Be concise.",
+    "pruneToolResults": true,
+    "pruneKeepLast": 6,
+    "pruneMaxChars": 2000
+  },
+  "loop": {
+    "strategy": "react",
+    "maxSteps": 8,
+    "maxToolCalls": 20,
+    "timeBudgetSec": 120,
+    "onToolError": "continue",
+    "onMaxSteps": "summarize",
+    "planningPrompt": "Before acting, write a short numbered plan for how you will answer the request. Do not call tools yet.",
+    "selfCheck": {
+      "enabled": false,
+      "maxRevisions": 1,
+      "prompt": "Review your draft answer against the user's request. If it is complete and correct reply with exactly APPROVED. Otherwise reply with the corrected final answer only."
+    }
+  },
+  "subagents": [],
+  "permissions": {
+    "defaultPolicy": "allow",
+    "toolPolicies": {},
+    "approvalWebhook": "",
+    "workspaceRoot": "./qa-data/workspace"
+  },
+  "guardrails": {
+    "inputRules": [],
+    "outputRules": [],
+    "redactPII": false,
+    "maxInputChars": 100000,
+    "blockedMessage": "QA: request blocked."
+  },
+  "hooks": [],
+  "observability": {
+    "logLevel": "info",
+    "logFormat": "text",
+    "traceFile": "./qa-data/trace.jsonl",
+    "traceHeader": true,
+    "includeUsage": true
+  }
+}

@@ -3,3 +3,5 @@ harness-data/
 workspace/
 /openharness
 *.test
+
+qa-data/
