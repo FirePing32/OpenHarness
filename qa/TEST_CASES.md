@@ -2714,14 +2714,14 @@ _Builder with `--public` (or the deployed image). Fixtures on localhost are inte
   1. Run 10 builds back to back while watching `free -h` / Coolify metrics.
 - **Expected:** No OOM kills; swap use stays modest; Coolify UI responsive.
 
-### DEP-13 · Link preview when sharing the URL
+### DEP-13 · Link previews on social platforms
 `P1` · Functional · Env D
 
 - **Steps:**
-  1. `curl -s https://<domain>/ | grep og:`
-  2. Open https://<domain>/og.png.
-  3. Paste the link into WhatsApp (new chat, or append ?v=2 to bypass its cache) and into https://www.opengraph.xyz.
-- **Expected:** og:title, og:description, og:url and og:image all use https://<domain>/…; og.png is a 1200×630 PNG; WhatsApp and the validator show the card with title, description and image.
+  1. `curl -s https://<domain>/ | grep -E 'og:|twitter:'`; open /og.png, /favicon.ico, /apple-touch-icon.png, /robots.txt.
+  2. Check https://www.opengraph.xyz (all platforms), Facebook Sharing Debugger and LinkedIn Post Inspector (both have a re-scrape button).
+  3. Paste the link into WhatsApp, Telegram, Slack, Discord, X (post composer) and iMessage. Add ?v=N to bypass a cached empty preview.
+- **Expected:** All tags use https://<domain>/…; og.png is 1200×630; icons and robots.txt return 200. Every platform shows the large card with title, description and image (Discord with a black side bar).
 
 ### DEP-12 · Logs readable in Coolify
 `P2` · Functional · Env D

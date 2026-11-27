@@ -90,8 +90,15 @@ func TestIndexLinkPreview(t *testing.T) {
 		r.Header.Set("X-Forwarded-Proto", "https")
 		r.Header.Set("X-Forwarded-Host", "harness.example.com")
 	})
-	if !strings.Contains(body, `content="https://harness.example.com/og.png"`) {
-		t.Fatalf("behind proxy: want https public host")
+	for _, want := range []string{
+		`<meta property="og:image" content="https://harness.example.com/og.png">`,
+		`<meta name="twitter:image" content="https://harness.example.com/og.png">`,
+		`<meta property="og:url" content="https://harness.example.com/">`,
+		`<link rel="canonical" href="https://harness.example.com/">`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("behind proxy: missing %s", want)
+		}
 	}
 	// Without trust, forwarded headers are ignored.
 	if body := get(local, func(r *http.Request) { r.Header.Set("X-Forwarded-Host", "evil.example") }); strings.Contains(body, "evil.example") {

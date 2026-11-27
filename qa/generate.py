@@ -646,9 +646,11 @@ tc("DEP-08", "Client IP behind proxy", "P1", "Security", "D", "", ["Hit a rate l
 tc("DEP-09", "Redeploy on push (if webhook configured)", "P2", "Functional", "D", "", ["Push a trivial commit."], "Coolify redeploys automatically; site stays healthy.")
 tc("DEP-10", "Container restart recovers", "P1", "Resilience", "D", "", ["Restart the container from Coolify."], "Healthy again in < 30 s; previews from before are gone (in-memory) and the UI handles it.")
 tc("DEP-11", "Memory headroom during builds", "P1", "Performance", "D", "", ["Run 10 builds back to back while watching `free -h` / Coolify metrics."], "No OOM kills; swap use stays modest; Coolify UI responsive.")
-tc("DEP-13", "Link preview when sharing the URL", "P1", "Functional", "D", "",
-   ["`curl -s https://<domain>/ | grep og:`", "Open https://<domain>/og.png.", "Paste the link into WhatsApp (new chat, or append ?v=2 to bypass its cache) and into https://www.opengraph.xyz."],
-   "og:title, og:description, og:url and og:image all use https://<domain>/…; og.png is a 1200×630 PNG; WhatsApp and the validator show the card with title, description and image.")
+tc("DEP-13", "Link previews on social platforms", "P1", "Functional", "D", "",
+   ["`curl -s https://<domain>/ | grep -E 'og:|twitter:'`; open /og.png, /favicon.ico, /apple-touch-icon.png, /robots.txt.",
+    "Check https://www.opengraph.xyz (all platforms), Facebook Sharing Debugger and LinkedIn Post Inspector (both have a re-scrape button).",
+    "Paste the link into WhatsApp, Telegram, Slack, Discord, X (post composer) and iMessage. Add ?v=N to bypass a cached empty preview."],
+   "All tags use https://<domain>/…; og.png is 1200×630; icons and robots.txt return 200. Every platform shows the large card with title, description and image (Discord with a black side bar).")
 tc("DEP-12", "Logs readable in Coolify", "P2", "Functional", "D", "", ["Open the resource logs."], "Startup line 'OpenHarness builder running … mode=public'; build/preview lines with agent names.")
 
 # =====================================================================
