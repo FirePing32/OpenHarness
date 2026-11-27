@@ -429,6 +429,10 @@ DEP-11,Deployment (Coolify) and operations,Memory headroom during builds,P1,Perf
 DEP-13,Deployment (Coolify) and operations,Link previews on social platforms,P1,Functional,D,,"1. `curl -s https://<domain>/ | grep -E 'og:|twitter:'`; open /og.png, /favicon.ico, /apple-touch-icon.png, /robots.txt.
 2. Check https://www.opengraph.xyz (all platforms), Facebook Sharing Debugger and LinkedIn Post Inspector (both have a re-scrape button).
 3. Paste the link into WhatsApp, Telegram, Slack, Discord, X (post composer) and iMessage. Add ?v=N to bypass a cached empty preview.","All tags use https://<domain>/…; og.png is 1200×630; icons and robots.txt return 200. Every platform shows the large card with title, description and image (Discord with a black side bar).",,,,,
+DEP-14,Deployment (Coolify) and operations,Google Analytics opt-in,P2,Functional,D,GA4 property; OPENHARNESS_GA_ID set in Coolify.,"1. View page source: gtag script present with your ID.
+2. Choose a preset, visit steps, test, build.
+3. GA → Realtime / DebugView.
+4. Remove the variable, redeploy, view source.","Events page_view (/step/<id>), select_preset, test_start, test_message, build_download appear with only fixed parameters (no names, prompts or keys). Without the variable, no googletagmanager script loads.",,,,,
 DEP-12,Deployment (Coolify) and operations,Logs readable in Coolify,P2,Functional,D,,1. Open the resource logs.,Startup line 'OpenHarness builder running … mode=public'; build/preview lines with agent names.,,,,,
 PERF-01,Performance and resilience,Warm build time,P1,Performance,L,Cache warm (`go run ./cmd/openharness --warm` once).,1. Build 5 times for the host target.,Each ≤ 3 s locally (X-Build-Ms header).,,,,,
 PERF-02,Performance and resilience,Cold build time,P2,Performance,L,Fresh cache dir.,1. First build.,Completes (≈5–40 s depending on CPU).,,,,,

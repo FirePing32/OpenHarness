@@ -731,6 +731,25 @@ function steps() {
 
 function stepIndex(id) { return steps().findIndex((s) => s.id === id); }
 
+/* ------------------------------------------------------------------------ */
+/* Analytics (Google Analytics 4, only when the server injects gtag)          */
+/* ------------------------------------------------------------------------ */
+
+// Sends coarse product events. Never pass free text: no prompts, agent names,
+// spec contents, URLs or keys. Parameters are limited to fixed enums and numbers.
+function track(event, params) {
+  try { if (typeof window.gtag === 'function') window.gtag('event', event, params || {}); } catch { /* analytics must never break the app */ }
+}
+
+// The builder is a single-page app: report each step as a virtual page view.
+function trackPage(stepId) {
+  const s = steps().find((x) => x.id === stepId);
+  track('page_view', {
+    page_title: s ? `Step: ${s.comp ? s.comp.title : stepId}` : 'Start',
+    page_location: `${location.origin}/${stepId ? 'step/' + stepId : ''}`,
+  });
+}
+
 function goTo(id, focusField) {
   if (stepIndex(id) < 0) return;
   state.step = id;
@@ -738,6 +757,7 @@ function goTo(id, focusField) {
   save();
   renderStep();
   updateSidebar();
+  trackPage(id);
   const content = document.getElementById('content');
   if (content) content.scrollTop = 0;
   window.scrollTo(0, 0);
@@ -807,7 +827,7 @@ function renderStart() {
     h('span', { class: 'preset-title', text: 'Import spec JSON' }),
     h('span', { class: 'preset-desc', text: 'Load a harness spec exported earlier or written by hand. Missing fields fall back to defaults.' }));
 
-  const blank = h('button', { type: 'button', class: 'preset-card preset-alt', onclick: () => startWith(catalog.defaults) },
+  const blank = h('button', { type: 'button', class: 'preset-card preset-alt', onclick: () => { track('select_preset', { preset_id: 'defaults' }); startWith(catalog.defaults); } },
     h('span', { class: 'preset-kicker', text: 'From scratch' }),
     h('span', { class: 'preset-title', text: 'Start from defaults' }),
     h('span', { class: 'preset-desc', text: 'DeepSeek model, ReAct loop, a clock and a calculator. Change everything from there.' }));
@@ -837,7 +857,7 @@ function renderStart() {
       h('h2', { class: 'section-title', text: 'Start from a preset' }),
       h('p', { class: 'muted', text: online ? 'Each preset is a complete spec. You will still walk through every component and can change anything.' : 'The builder backend is offline, so presets are unavailable. You can still start from defaults or import a spec.' }),
       h('div', { class: 'preset-grid' },
-        (catalog.presets || []).map((p) => h('button', { type: 'button', class: 'preset-card', onclick: () => startWith(p.spec) },
+        (catalog.presets || []).map((p) => h('button', { type: 'button', class: 'preset-card', onclick: () => { track('select_preset', { preset_id: p.id }); startWith(p.spec); } },
           h('span', { class: 'preset-kicker mono', text: p.id }),
           h('span', { class: 'preset-title', text: p.title }),
           h('span', { class: 'preset-desc', text: p.description }),
@@ -1736,6 +1756,7 @@ async function startPreview() {
       preview.sessionId = newId();
       preview.traceId = '';
       preview.notes = Array.isArray(j.notes) ? j.notes : [];
+      track('test_start', { provider: state.spec.model.provider, strategy: state.spec.loop.strategy });
     }
   } catch (e) {
     preview.error = 'Network error: ' + e.message;
@@ -1801,6 +1822,7 @@ async function sendMessage(input) {
   if (!text || !preview.baseUrl) return;
   input.value = '';
   preview.messages.push({ role: 'user', content: text });
+  track('test_message');
   const reply = { role: 'assistant', content: '', activity: '', pending: true, error: '', traceId: '', usage: null };
   preview.messages.push(reply);
   preview.busy = true;
@@ -2099,8 +2121,10 @@ async function runBuild() {
     downloadBlob(blob, filename);
     buildState.result = { filename, size: blob.size, label: t.label, os: t.os, docker: !!state.docker };
     toast(state.docker ? 'Bundle downloaded' : 'Binary downloaded');
+    track('build_download', { target_os: t.os, target_arch: t.arch, docker: !!state.docker, size_mb: Math.round(blob.size / 1e6) });
   } catch (e) {
     buildState.error = e.message || String(e);
+    track('build_error', { target_os: t.os, target_arch: t.arch, docker: !!state.docker });
   }
   buildState.busy = false;
   clearInterval(buildState.timer);
@@ -2228,6 +2252,7 @@ function howToRun(t) {
 /* ------------------------------------------------------------------------ */
 
 function exportSpec() {
+  track('export_spec');
   const blob = new Blob([specJSON() + '\n'], { type: 'application/json' });
   downloadBlob(blob, `${state.spec.name || 'agent'}.harness.json`);
 }
@@ -2240,6 +2265,7 @@ async function importFile(file) {
     if (!isPlainObject(raw)) throw new Error('Expected a JSON object');
     startWith(raw);
     toast(`Imported ${state.spec.name}`);
+    track('import_spec');
   } catch (e) {
     toast('Import failed: ' + e.message, 'error');
   }
@@ -2311,6 +2337,7 @@ function wireTheme() {
   document.getElementById('btn-theme').addEventListener('click', () => {
     const next = effectiveTheme() === 'dark' ? 'light' : 'dark';
     document.documentElement.dataset.theme = next;
+    track('theme_toggle', { theme: next });
     try { localStorage.setItem(THEME_KEY, next); } catch { /* private mode: choice lasts for this page only */ }
     updateThemeButton();
   });

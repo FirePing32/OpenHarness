@@ -49,6 +49,7 @@ The image already sets everything needed, so no environment variables are requir
 | `OPENHARNESS_TRUST_PROXY` | `1` | Read the client IP from `X-Forwarded-For`. Correct behind Coolify's proxy. Set `0` if the container port is exposed directly. |
 | `OPENHARNESS_ADDR` | `0.0.0.0:7070` | Listen address (`PORT` also works). |
 | `OPENHARNESS_PUBLIC_URL` | unset | Absolute site URL used in link-preview tags (WhatsApp, Slack, X), e.g. `https://harness.example.com`. When unset, it's taken from the proxy's `X-Forwarded-Proto`/`X-Forwarded-Host`. |
+| `OPENHARNESS_GA_ID` | unset | Google Analytics 4 Measurement ID (`G-…`). When set, the site loads the GA4 tag and reports step views plus a few product events; when unset, no Google script loads. See [Analytics](#analytics). |
 | `OPENHARNESS_BUILD_CONCURRENCY` | `2` (`1` in compose) | Parallel binary builds. Each is CPU-bound and uses a few hundred MB of RAM. |
 
 **Do not put model API keys in Coolify's environment.** Public mode never reads server environment variables for visitors' agents anyway.
@@ -80,3 +81,24 @@ docker compose -f docker-compose.yml -f docker-compose.local.yml up --build   # 
 The base `docker-compose.yml` publishes no host port, which is right behind a proxy. `docker-compose.local.yml` adds `127.0.0.1:7070` for local use and stops trusting `X-Forwarded-For`.
 
 Any Docker host works the same way: Render, Railway, Fly.io or a plain VPS. Mount a volume at `/data` and route HTTPS to port 7070. Serverless platforms (Vercel, Cloudflare Workers) don't fit: there is no Go toolchain at runtime, executions are time-limited, and previews need a long-lived process.
+
+## Analytics
+
+Google Analytics 4 is opt-in:
+
+1. In Google Analytics, go to **Admin → Create → Property**. Then **Data streams → Web**, enter your domain, and copy the **Measurement ID** (`G-…`).
+2. In Coolify, add the environment variable `OPENHARNESS_GA_ID=G-…` to the resource and redeploy.
+3. Open the site and check **Reports → Realtime**. Ad blockers hide some visitors, which is expected.
+
+What gets reported:
+
+| Event | When | Parameters |
+|---|---|---|
+| `page_view` | page load, and each builder step (as `/step/<id>`) | page title and location |
+| `select_preset` | a preset or "Start from defaults" is chosen | `preset_id` |
+| `test_start`, `test_message` | a test instance starts / a test message is sent | `provider`, `strategy` (start only) |
+| `build_download`, `build_error` | a build finishes or fails | `target_os`, `target_arch`, `docker`, `size_mb` |
+| `import_spec`, `export_spec`, `theme_toggle` | those actions | `theme` |
+
+No spec contents, prompts, chat text, agent names, URLs or API keys are ever sent. Parameters are fixed values and numbers only. GA4 sets first-party cookies (`_ga`), so if you have visitors in regions that require consent (EU/UK, and India under the DPDP Act), add a consent banner or a short privacy notice.
+

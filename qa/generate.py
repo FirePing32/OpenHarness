@@ -651,6 +651,10 @@ tc("DEP-13", "Link previews on social platforms", "P1", "Functional", "D", "",
     "Check https://www.opengraph.xyz (all platforms), Facebook Sharing Debugger and LinkedIn Post Inspector (both have a re-scrape button).",
     "Paste the link into WhatsApp, Telegram, Slack, Discord, X (post composer) and iMessage. Add ?v=N to bypass a cached empty preview."],
    "All tags use https://<domain>/…; og.png is 1200×630; icons and robots.txt return 200. Every platform shows the large card with title, description and image (Discord with a black side bar).")
+tc("DEP-14", "Google Analytics opt-in", "P2", "Functional", "D", "GA4 property; OPENHARNESS_GA_ID set in Coolify.",
+   ["View page source: gtag script present with your ID.", "Choose a preset, visit steps, test, build.", "GA → Realtime / DebugView.",
+    "Remove the variable, redeploy, view source."],
+   "Events page_view (/step/<id>), select_preset, test_start, test_message, build_download appear with only fixed parameters (no names, prompts or keys). Without the variable, no googletagmanager script loads.")
 tc("DEP-12", "Logs readable in Coolify", "P2", "Functional", "D", "", ["Open the resource logs."], "Startup line 'OpenHarness builder running … mode=public'; build/preview lines with agent names.")
 
 # =====================================================================

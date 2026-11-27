@@ -113,3 +113,25 @@ func TestIndexLinkPreview(t *testing.T) {
 		t.Fatal("OPENHARNESS_PUBLIC_URL not used")
 	}
 }
+
+func TestAnalyticsSnippet(t *testing.T) {
+	page := func() string {
+		w := httptest.NewRecorder()
+		(&app{}).index(w, httptest.NewRequest("GET", "http://x.example/", nil))
+		return w.Body.String()
+	}
+	t.Setenv("OPENHARNESS_GA_ID", "")
+	if strings.Contains(page(), "googletagmanager") || strings.Contains(page(), "<!--ANALYTICS-->") {
+		t.Fatal("no GA id: page must not load gtag or keep the placeholder")
+	}
+	t.Setenv("OPENHARNESS_GA_ID", "G-ABC123XYZ")
+	if p := page(); !strings.Contains(p, "gtag/js?id=G-ABC123XYZ") || !strings.Contains(p, "gtag('config', 'G-ABC123XYZ')") {
+		t.Fatal("valid GA id: snippet missing")
+	}
+	for _, bad := range []string{`G-1"></script><script>alert(1)`, "UA-12345-1", "g-abc123", "G-"} {
+		t.Setenv("OPENHARNESS_GA_ID", bad)
+		if p := page(); strings.Contains(p, "googletagmanager") || strings.Contains(p, "alert(1)") {
+			t.Fatalf("invalid GA id %q was injected", bad)
+		}
+	}
+}
