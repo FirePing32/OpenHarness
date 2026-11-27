@@ -14,6 +14,11 @@ services:
       OPENHARNESS_TRUST_PROXY: "1"
       # One compile at a time suits a 2-CPU server; raise on bigger machines.
       OPENHARNESS_BUILD_CONCURRENCY: "1"
+      # Optional, set in Coolify's Environment Variables (empty = off):
+      #   Google Analytics 4 Measurement ID, e.g. G-XXXXXXXXXX
+      OPENHARNESS_GA_ID: ${OPENHARNESS_GA_ID:-}
+      #   Absolute site URL for link previews (otherwise taken from the proxy)
+      OPENHARNESS_PUBLIC_URL: ${OPENHARNESS_PUBLIC_URL:-}
     volumes:
       - openharness-data:/data
     restart: unless-stopped
