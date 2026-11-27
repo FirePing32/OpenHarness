@@ -108,6 +108,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", http.FileServerFS(web.FS))
+	mux.HandleFunc("GET /{$}", a.index)
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, map[string]any{"status": "ok"}) })
 	mux.HandleFunc("GET /api/catalog", a.catalog)
 	mux.HandleFunc("POST /api/validate", a.validate)

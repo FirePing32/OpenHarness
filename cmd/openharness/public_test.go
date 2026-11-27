@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -66,5 +67,42 @@ func TestClientIP(t *testing.T) {
 	}
 	if got := clientIP(r, true); got != "1.2.3.4" {
 		t.Fatalf("trusted: %s", got)
+	}
+}
+
+func TestIndexLinkPreview(t *testing.T) {
+	get := func(a *app, mutate func(*http.Request)) string {
+		r := httptest.NewRequest("GET", "http://harness.example.com/", nil)
+		if mutate != nil {
+			mutate(r)
+		}
+		w := httptest.NewRecorder()
+		a.index(w, r)
+		return w.Body.String()
+	}
+	local := &app{}
+	if body := get(local, nil); !strings.Contains(body, `content="http://harness.example.com/og.png"`) || strings.Contains(body, "__BASE_URL__") {
+		t.Fatalf("plain request: og:image not absolute")
+	}
+	proxied := &app{cfg: config{trustProxy: true}}
+	body := get(proxied, func(r *http.Request) {
+		r.Host = "internal:7070"
+		r.Header.Set("X-Forwarded-Proto", "https")
+		r.Header.Set("X-Forwarded-Host", "harness.example.com")
+	})
+	if !strings.Contains(body, `content="https://harness.example.com/og.png"`) {
+		t.Fatalf("behind proxy: want https public host")
+	}
+	// Without trust, forwarded headers are ignored.
+	if body := get(local, func(r *http.Request) { r.Header.Set("X-Forwarded-Host", "evil.example") }); strings.Contains(body, "evil.example") {
+		t.Fatal("untrusted X-Forwarded-Host was used")
+	}
+	// A hostile Host header can't inject markup.
+	if body := get(local, func(r *http.Request) { r.Host = `x"><script>` }); strings.Contains(body, "<script>\"") || strings.Contains(body, `x"><script>`) {
+		t.Fatal("Host header injected into the page")
+	}
+	t.Setenv("OPENHARNESS_PUBLIC_URL", "https://pinned.example/")
+	if body := get(proxied, nil); !strings.Contains(body, `content="https://pinned.example/og.png"`) {
+		t.Fatal("OPENHARNESS_PUBLIC_URL not used")
 	}
 }

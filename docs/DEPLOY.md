@@ -48,6 +48,7 @@ The image already sets everything needed, so no environment variables are requir
 | `OPENHARNESS_PUBLIC` | `1` | Public mode (see below). Set `0` only for a private, trusted deployment. |
 | `OPENHARNESS_TRUST_PROXY` | `1` | Read the client IP from `X-Forwarded-For`. Correct behind Coolify's proxy. Set `0` if the container port is exposed directly. |
 | `OPENHARNESS_ADDR` | `0.0.0.0:7070` | Listen address (`PORT` also works). |
+| `OPENHARNESS_PUBLIC_URL` | unset | Absolute site URL used in link-preview tags (WhatsApp, Slack, X), e.g. `https://harness.example.com`. When unset, it's taken from the proxy's `X-Forwarded-Proto`/`X-Forwarded-Host`. |
 | `OPENHARNESS_BUILD_CONCURRENCY` | `2` (`1` in compose) | Parallel binary builds. Each is CPU-bound and uses a few hundred MB of RAM. |
 
 **Do not put model API keys in Coolify's environment.** Public mode never reads server environment variables for visitors' agents anyway.
